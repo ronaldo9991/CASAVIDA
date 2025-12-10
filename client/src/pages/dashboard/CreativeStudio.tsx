@@ -243,14 +243,14 @@ export default function CreativeStudio() {
             Creative Studio 
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-wider font-bold">Live</span>
           </h2>
-          <p className="text-muted-foreground">AI-powered campaign generation using Gemini for text and images, with Murf AI for voice.</p>
+          <p className="text-muted-foreground">AI-powered campaign generation using Gemini for text and images (supports all furniture types), with Murf AI for voice.</p>
         </div>
       </div>
 
       <Alert className="mb-6 border-blue-500/50 bg-blue-500/5">
         <Info className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-sm">
-          <strong>Creative Studio</strong> uses AI to generate marketing content. Enter a product name and target segment, then generate marketing copy (text), product images (visual), and voice scripts (audio) for campaigns. The AI creates multiple variations optimized for different platforms like Instagram, Email, or Website banners.
+          <strong>Creative Studio</strong> uses Gemini AI to generate marketing content. Enter any furniture product name (chairs, gaming chairs, sofas, tables, space furniture, outdoor furniture, etc.) and target segment, then generate marketing copy (text), product images (visual), and voice scripts (audio) for campaigns. The AI intelligently adapts to any furniture type and creates multiple variations optimized for different platforms.
         </AlertDescription>
       </Alert>
 
@@ -272,11 +272,14 @@ export default function CreativeStudio() {
                   <div className="space-y-2">
                     <Label>Product Name</Label>
                     <Input 
-                      placeholder="e.g. Kyoto Lounge Chair" 
+                      placeholder="e.g. Kyoto Lounge Chair, Gaming Chair Pro, Space Age Sofa, Modern Dining Table..." 
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
                       data-testid="input-product-name"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Enter any furniture type: chairs, gaming chairs, sofas, tables, space furniture, outdoor furniture, etc.
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>Target Segment</Label>
@@ -414,8 +417,10 @@ export default function CreativeStudio() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {isGeneratingImage ? (
-                    <div className="aspect-square bg-muted rounded-md flex items-center justify-center">
+                    <div className="aspect-square bg-muted rounded-md flex items-center justify-center flex-col gap-3">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <p className="text-sm text-muted-foreground">Generating image with Gemini AI...</p>
+                      <p className="text-xs text-muted-foreground">This may take 10-30 seconds</p>
                     </div>
                   ) : generatedImageUrl ? (
                     <div className="aspect-square bg-muted rounded-md relative group overflow-hidden animate-in zoom-in-95 duration-500">
@@ -430,9 +435,10 @@ export default function CreativeStudio() {
                       </div>
                     </div>
                   ) : (
-                    <div className="aspect-square bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-col gap-2 opacity-50">
+                    <div className="aspect-square bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-col gap-2 opacity-50 border-2 border-dashed">
                       <ImageIcon className="w-8 h-8" />
-                      <p className="text-sm">Image will appear here.</p>
+                      <p className="text-sm text-center px-4">Generated product image will appear here</p>
+                      <p className="text-xs text-center px-4">Works with all furniture types: chairs, gaming chairs, sofas, tables, space furniture, and more</p>
                     </div>
                   )}
                 </CardContent>
