@@ -1,0 +1,85 @@
+Create two new React/Next.js pages/components for the CasaVida AI platform frontend:
+
+Page 1: “CasaVida Dubai – Luxury & Premium”
+Purpose: Position CasaVida as a premium & luxury home and furniture brand in Dubai, targeting high‑income, design‑conscious customers.
+Content & structure requirements:
+
+Hero section:
+
+Headline about CasaVida Dubai as a luxury destination for furniture and home living.
+
+Sub‑headline mentioning Dubai, UAE, and premium lifestyle.
+
+CTA button: “Explore Dubai Collection”.
+
+Section: “Why Dubai Loves CasaVida”
+
+3–4 feature cards (e.g., curated designer collections, bespoke furniture, concierge‑style service, fast delivery across UAE).
+
+Section: “Luxury Furniture & Categories”
+
+Grid of categories: sofas, bedroom, dining, outdoor, décor, lighting, office, etc., all positioned as premium/luxury.
+
+Section: “Designed for Dubai Lifestyles”
+
+Copy mentioning penthouses, villas, modern apartments, waterfront living, etc.
+
+Emphasis on premium materials, sustainability, and elevated aesthetics.
+
+Tone: aspirational, sophisticated, modern.
+
+Styling:
+
+Dark, elegant theme aligned with existing CasaVida UI (cyan / magenta / neon accent).
+
+Use Tailwind CSS utility classes (same style as existing CasaVida frontend).
+
+Responsive layout.
+
+Page 2: “CasaVida India – Modern + Authentic”
+Purpose: Position CasaVida in India for middle‑level and premium customers, combining authentic Indian style & culture with modern, premium design.
+Content & structure requirements:
+
+Hero section:
+
+Headline about CasaVida India blending tradition and modern living.
+
+Sub‑headline mentioning Indian homes, culture, and accessible premium furniture.
+
+CTA button: “Explore India Collection”.
+
+Section: “Authentic Indian Design, Modern Comfort”
+
+3–4 feature cards (e.g., handcrafted details, regional design inspirations, value‑driven pricing, durable materials).
+
+Section: “Collections Inspired by India”
+
+Tiles for: Jaipur heritage, South Indian minimal, Mumbai urban, Delhi classic, etc.
+
+Each tile with short description (authentic + premium).
+
+Section: “For Middle & Premium Segments”
+
+Clear text explaining CasaVida India serves both middle income and premium customers, with tiered options but consistent quality.
+
+Tone: warm, cultural, yet modern and premium.
+
+Styling:
+
+Same design system as CasaVida (Tailwind, dark glassmorphism), but with subtle warm accent hints (e.g., amber/gold) to suggest Indian aesthetic.
+
+Responsive layout.
+
+Global technical requirements for both pages:
+
+Implement as Next.js components/pages that can be imported into the existing CasaVida frontend (TypeScript + Tailwind).
+
+Export each as a default React functional component.
+
+Use the same header/font system as the existing CasaVida platform (assume Segoe UI and the existing gradient logo style).
+
+Include simple navigation breadcrumbs or title at top (e.g., “CasaVida / Dubai” and “CasaVida / India”).
+
+Avoid any backend code; purely static frontend pages ready to plug into the current app.
+
+Return only the complete, production‑ready code for both components (Dubai and India), with no extra explanation.

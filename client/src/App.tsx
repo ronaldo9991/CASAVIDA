@@ -8,6 +8,8 @@ import NotFound from "@/pages/not-found";
 
 // Pages
 import Home from "@/pages/Home";
+import Dubai from "@/pages/Dubai";
+import India from "@/pages/India";
 import Login from "@/pages/Login";
 import DashboardHome from "@/pages/dashboard/DashboardHome";
 import CreativeStudio from "@/pages/dashboard/CreativeStudio";
@@ -24,6 +26,8 @@ function Router() {
     <Switch>
       {/* Public Routes */}
       <Route path="/" component={Home} />
+      <Route path="/dubai" component={Dubai} />
+      <Route path="/india" component={India} />
       <Route path="/login" component={Login} />
 
       {/* Dashboard Routes */}
