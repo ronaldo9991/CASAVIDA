@@ -234,3 +234,87 @@ This is CasaVida. This is home, reimagined.
 
 Visit our showroom today.`;
 }
+
+export interface DashboardData {
+  segments: any[];
+  competitors: any[];
+  initiatives: any[];
+}
+
+export interface DashboardRecommendations {
+  executiveSummary: string;
+  topRisks: { risk: string; severity: string; action: string }[];
+  strategicMoves: { move: string; priority: string; impact: string }[];
+  segmentStrategy: { segment: string; recommendation: string }[];
+}
+
+export async function generateDashboardRecommendations(data: DashboardData): Promise<DashboardRecommendations> {
+  const client = getOpenAIClient();
+  
+  if (!client) {
+    return generateMockRecommendations(data);
+  }
+
+  try {
+    const prompt = `You are a senior marketing strategy consultant analyzing CasaVida, a home & living retailer in crisis.
+
+Current Data:
+- Segments: ${JSON.stringify(data.segments.map(s => ({ name: s.name, size: s.size, churnRisk: s.churnRisk, healthScore: s.healthScore, isCore: s.isCore })))}
+- Competitors: ${JSON.stringify(data.competitors.map(c => ({ name: c.name, marketShare: c.marketShare, threat: c.threat })))}
+- Initiatives: ${JSON.stringify(data.initiatives.map(i => ({ name: i.name, priority: i.priority, impact: i.impact, effort: i.effort })))}
+
+The company is making the classic mistake of chasing a premium "Home Enhancer" segment while neglecting their core "Functional Homemaker" customers, similar to the Bunnings/Homebase failure.
+
+Provide strategic recommendations in JSON format:
+{
+  "executiveSummary": "2-3 sentence executive summary of the situation and key recommendation",
+  "topRisks": [
+    { "risk": "description", "severity": "critical|high|medium", "action": "immediate action" }
+  ],
+  "strategicMoves": [
+    { "move": "strategic action", "priority": "immediate|short-term|long-term", "impact": "expected outcome" }
+  ],
+  "segmentStrategy": [
+    { "segment": "segment name", "recommendation": "specific recommendation" }
+  ]
+}`;
+
+    const response = await client.chat.completions.create({
+      model: "gpt-5",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 1024,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    return result as DashboardRecommendations;
+  } catch (error) {
+    console.error("OpenAI recommendations error, falling back to mock:", error);
+    return generateMockRecommendations(data);
+  }
+}
+
+function generateMockRecommendations(data: DashboardData): DashboardRecommendations {
+  const coreSegment = data.segments.find(s => s.isCore);
+  const churnRisk = coreSegment ? Math.round(coreSegment.churnRisk * 100) : 35;
+  
+  return {
+    executiveSummary: `CasaVida is experiencing a strategic misalignment crisis. The company is over-investing in premium "Home Enhancer" acquisition while core "Functional Homemaker" customers are churning at ${churnRisk}%. Immediate priority should be core segment retention before further premium expansion.`,
+    topRisks: [
+      { risk: "Core segment churn accelerating", severity: "critical", action: "Launch targeted retention campaign within 2 weeks" },
+      { risk: "Premium acquisition costs unsustainable", severity: "high", action: "Freeze new showroom expansion and influencer spend" },
+      { risk: "Competitor HomeStyle Direct gaining share", severity: "high", action: "Match competitive pricing on core product lines" },
+    ],
+    strategicMoves: [
+      { move: "Deploy Churn Prediction Model", priority: "immediate", impact: "Identify at-risk customers before they leave, enabling proactive retention" },
+      { move: "Launch Value Bundle Promotions", priority: "immediate", impact: "Increase basket size and loyalty in core segment" },
+      { move: "Pause Premium Influencer Campaign", priority: "immediate", impact: "Redirect $200K+ budget to core retention efforts" },
+      { move: "Revamp Loyalty Program", priority: "short-term", impact: "Increase retention rate by 15-20% in core segment" },
+    ],
+    segmentStrategy: [
+      { segment: "Functional Homemakers", recommendation: "PROTECT: This is your profit engine. Launch retention offers, improve value perception, and address competitive pricing pressure." },
+      { segment: "Home Enhancers", recommendation: "PAUSE GROWTH: Do not abandon, but freeze acquisition spend until core is stabilized. Focus on organic growth and referrals." },
+      { segment: "Occasional Browsers", recommendation: "CONVERT OR RELEASE: Implement quick-win conversion tactics; accept natural churn for low-value visitors." },
+    ],
+  };
+}

@@ -1,9 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, seedCasaVidaFailureData } from "./storage";
 import { 
-  insertSegmentSchema, 
-  insertCompetitorSchema, 
   generateTextRequestSchema,
   generateImageRequestSchema,
   generateVoiceRequestSchema
@@ -13,7 +11,8 @@ import {
   generateProductImage, 
   generateVoiceAudio,
   generateVoiceScript,
-  isOpenAIConfigured 
+  isOpenAIConfigured,
+  generateDashboardRecommendations
 } from "./openai";
 import { z } from "zod";
 
@@ -27,7 +26,17 @@ export async function registerRoutes(
     res.json({ configured: isOpenAIConfigured() });
   });
 
-  // ============ SEGMENTS API ============
+  // ============ SEED DATA API ============
+  app.post("/api/seed", async (_req: Request, res: Response) => {
+    try {
+      const result = await seedCasaVidaFailureData();
+      res.json({ success: true, seeded: result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============ SEGMENTS API (Read-only + Download) ============
   app.get("/api/segments", async (_req: Request, res: Response) => {
     try {
       const segments = await storage.getSegments();
@@ -37,53 +46,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/segments", async (req: Request, res: Response) => {
-    try {
-      const parsed = insertSegmentSchema.parse(req.body);
-      const segment = await storage.createSegment(parsed);
-      res.status(201).json(segment);
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.errors });
-      } else {
-        res.status(500).json({ error: error.message });
-      }
-    }
-  });
-
-  app.post("/api/segments/bulk", async (req: Request, res: Response) => {
-    try {
-      const parsed = z.array(insertSegmentSchema).parse(req.body);
-      const segments = await storage.createSegments(parsed);
-      res.status(201).json(segments);
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.errors });
-      } else {
-        res.status(500).json({ error: error.message });
-      }
-    }
-  });
-
-  app.delete("/api/segments/:id", async (req: Request, res: Response) => {
-    try {
-      await storage.deleteSegment(req.params.id);
-      res.status(204).send();
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.delete("/api/segments", async (_req: Request, res: Response) => {
-    try {
-      await storage.deleteAllSegments();
-      res.status(204).send();
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // ============ COMPETITORS API ============
+  // ============ COMPETITORS API (Read-only + Download) ============
   app.get("/api/competitors", async (_req: Request, res: Response) => {
     try {
       const competitors = await storage.getCompetitors();
@@ -93,47 +56,110 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/competitors", async (req: Request, res: Response) => {
+  // ============ INITIATIVES API ============
+  app.get("/api/initiatives", async (_req: Request, res: Response) => {
     try {
-      const parsed = insertCompetitorSchema.parse(req.body);
-      const competitor = await storage.createCompetitor(parsed);
-      res.status(201).json(competitor);
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.errors });
-      } else {
-        res.status(500).json({ error: error.message });
-      }
-    }
-  });
-
-  app.post("/api/competitors/bulk", async (req: Request, res: Response) => {
-    try {
-      const parsed = z.array(insertCompetitorSchema).parse(req.body);
-      const competitors = await storage.createCompetitors(parsed);
-      res.status(201).json(competitors);
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.errors });
-      } else {
-        res.status(500).json({ error: error.message });
-      }
-    }
-  });
-
-  app.delete("/api/competitors/:id", async (req: Request, res: Response) => {
-    try {
-      await storage.deleteCompetitor(req.params.id);
-      res.status(204).send();
+      const initiatives = await storage.getInitiatives();
+      res.json(initiatives);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.delete("/api/competitors", async (_req: Request, res: Response) => {
+  // ============ DASHBOARD SUMMARY API ============
+  app.get("/api/dashboard/summary", async (_req: Request, res: Response) => {
     try {
-      await storage.deleteAllCompetitors();
-      res.status(204).send();
+      const segments = await storage.getSegments();
+      const competitors = await storage.getCompetitors();
+      const initiatives = await storage.getInitiatives();
+
+      const coreSegment = segments.find(s => s.isCore);
+      const newSegment = segments.find(s => !s.isCore && s.name.includes("Enhancer"));
+      
+      const totalCustomers = segments.reduce((acc, s) => acc + s.size, 0);
+      const avgChurnRisk = segments.length > 0 
+        ? segments.reduce((acc, s) => acc + s.churnRisk * s.size, 0) / totalCustomers 
+        : 0;
+      const totalClv = segments.reduce((acc, s) => acc + s.avgClv * s.size, 0);
+      
+      const competitorThreat = competitors.filter(c => c.threat === "high").length;
+      const totalCompetitorShare = competitors.reduce((acc, c) => acc + c.marketShare, 0);
+      const casaVidaShare = Math.max(0, 100 - totalCompetitorShare);
+
+      const focusInitiatives = initiatives.filter(i => i.priority === "focus");
+      const pauseInitiatives = initiatives.filter(i => i.priority === "pause");
+
+      const summary = {
+        segments: {
+          total: segments.length,
+          totalCustomers,
+          core: coreSegment ? {
+            name: coreSegment.name,
+            size: coreSegment.size,
+            healthScore: coreSegment.healthScore,
+            churnRisk: coreSegment.churnRisk,
+            clvTrend: coreSegment.clvTrend,
+          } : null,
+          new: newSegment ? {
+            name: newSegment.name,
+            size: newSegment.size,
+            healthScore: newSegment.healthScore,
+            acquisitionCost: newSegment.acquisitionCost,
+            growthRate: newSegment.growthRate,
+          } : null,
+        },
+        kpis: {
+          avgChurnRisk: Math.round(avgChurnRisk * 100),
+          totalClv: Math.round(totalClv),
+          marketShare: Math.round(casaVidaShare),
+          competitorThreat,
+        },
+        initiatives: {
+          total: initiatives.length,
+          focus: focusInitiatives.length,
+          pause: pauseInitiatives.length,
+          focusList: focusInitiatives.map(i => ({ name: i.name, impact: i.impact, effort: i.effort })),
+          pauseList: pauseInitiatives.map(i => ({ name: i.name, recommendation: i.recommendation })),
+        },
+        alerts: [
+          ...(coreSegment && coreSegment.churnRisk > 0.3 ? [{
+            type: "critical",
+            message: `${coreSegment.name} segment at ${Math.round(coreSegment.churnRisk * 100)}% churn risk`,
+            action: "Activate retention campaign immediately",
+          }] : []),
+          ...(coreSegment && coreSegment.clvTrend && coreSegment.clvTrend < -0.1 ? [{
+            type: "warning",
+            message: `CLV declining ${Math.round(Math.abs(coreSegment.clvTrend) * 100)}% in core segment`,
+            action: "Review pricing and value proposition",
+          }] : []),
+          ...(newSegment && newSegment.acquisitionCost && newSegment.acquisitionCost > 200 ? [{
+            type: "warning",
+            message: `${newSegment.name} acquisition cost is $${newSegment.acquisitionCost}`,
+            action: "Evaluate ROI of premium acquisition spend",
+          }] : []),
+        ],
+      };
+
+      res.json(summary);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============ AI RECOMMENDATIONS API ============
+  app.get("/api/dashboard/recommendations", async (_req: Request, res: Response) => {
+    try {
+      const segments = await storage.getSegments();
+      const competitors = await storage.getCompetitors();
+      const initiatives = await storage.getInitiatives();
+
+      const recommendations = await generateDashboardRecommendations({
+        segments,
+        competitors,
+        initiatives,
+      });
+
+      res.json(recommendations);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
