@@ -126,7 +126,7 @@ export type GenerateImageRequest = z.infer<typeof generateImageRequestSchema>;
 
 export const generateVoiceRequestSchema = z.object({
   script: z.string().min(1),
-  voice: z.string().default("alloy"),
+  voice: z.string().default("rachel"), // Eleven Labs voice name, not OpenAI
   speed: z.number().min(0.25).max(4.0).default(1.0),
 });
 

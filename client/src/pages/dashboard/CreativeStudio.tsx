@@ -28,7 +28,7 @@ export default function CreativeStudio() {
   const [keyBenefit, setKeyBenefit] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeTab, setActiveTab] = useState("campaign");
-  const [voiceModel, setVoiceModel] = useState("alloy");
+  const [voiceModel, setVoiceModel] = useState("rachel");
   const [voiceSpeed, setVoiceSpeed] = useState("1.0");
   const [voiceScriptInput, setVoiceScriptInput] = useState("");
   const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
@@ -243,7 +243,7 @@ export default function CreativeStudio() {
             Creative Studio 
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-wider font-bold">Live</span>
           </h2>
-          <p className="text-muted-foreground">AI-powered campaign generation using GPT-5, DALL-E 3, and TTS-1-HD.</p>
+          <p className="text-muted-foreground">AI-powered campaign generation using Gemini, Hugging Face Stable Diffusion, and Eleven Labs.</p>
         </div>
       </div>
 
@@ -300,7 +300,7 @@ export default function CreativeStudio() {
                           className="flex-1 text-xs capitalize"
                           onClick={() => setPlatform(p)}
                         >
-                          {p === "instagram" ? "Insta" : p}
+                          {p === "instagram" ? "Insta" : p === "tiktok" ? "TikTok" : p}
                         </Button>
                       ))}
                     </div>
@@ -485,7 +485,7 @@ export default function CreativeStudio() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mic className="w-5 h-5 text-primary"/>
-                AI Voice Generator (TTS-1-HD)
+                AI Voice Generator (Eleven Labs)
               </CardTitle>
               <CardDescription>Convert marketing copy into human-like audio for ads and social media.</CardDescription>
             </CardHeader>
@@ -508,12 +508,15 @@ export default function CreativeStudio() {
                       <Select value={voiceModel} onValueChange={setVoiceModel}>
                         <SelectTrigger><SelectValue/></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="alloy">Alloy (Neutral)</SelectItem>
-                          <SelectItem value="echo">Echo (Warm)</SelectItem>
-                          <SelectItem value="fable">Fable (British)</SelectItem>
-                          <SelectItem value="onyx">Onyx (Deep)</SelectItem>
-                          <SelectItem value="nova">Nova (Feminine)</SelectItem>
-                          <SelectItem value="shimmer">Shimmer (Clear)</SelectItem>
+                          <SelectItem value="rachel">Rachel (Neutral, Professional)</SelectItem>
+                          <SelectItem value="adam">Adam (Deep, Authoritative)</SelectItem>
+                          <SelectItem value="antoni">Antoni (Warm, Friendly)</SelectItem>
+                          <SelectItem value="arnold">Arnold (Strong, Confident)</SelectItem>
+                          <SelectItem value="bella">Bella (Soft, Gentle)</SelectItem>
+                          <SelectItem value="domi">Domi (Energetic, Vibrant)</SelectItem>
+                          <SelectItem value="elli">Elli (Calm, Soothing)</SelectItem>
+                          <SelectItem value="josh">Josh (Casual, Conversational)</SelectItem>
+                          <SelectItem value="sam">Sam (Balanced, Versatile)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

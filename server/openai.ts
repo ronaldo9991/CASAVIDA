@@ -162,10 +162,10 @@ export async function generateProductImage(params: {
   const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting setup with professional photography, premium materials clearly visible (wood grain, fabric texture, metal finishes), 4K resolution aesthetic, sharp focus, professional composition, clean background that complements the product, product should be the clear focal point. ${additionalContext || ''} The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
 
   try {
-    // Using Hugging Face Stable Diffusion XL model via new router endpoint
+    // Using Hugging Face Stable Diffusion XL model via Inference API
     // Note: First request might take longer as model loads (cold start)
     const response = await fetch(
-      "https://router.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
       {
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -225,13 +225,29 @@ export async function generateProductImage(params: {
 // Removed getMockImageUrl - no mock images, always use API
 
 // Voice generation using Eleven Labs (replacing OpenAI TTS)
+// Mapping of friendly voice names to Eleven Labs voice IDs
+const ELEVEN_LABS_VOICES: Record<string, string> = {
+  "rachel": "21m00Tcm4TlvDq8ikWAM", // Rachel - Neutral, professional
+  "adam": "pNInz6obpgDQGcFmaJgB", // Adam - Deep, authoritative
+  "antoni": "ErXwobaYiN019PkySvjV", // Antoni - Warm, friendly
+  "arnold": "VR6AewLTigWG4xSOukaG", // Arnold - Strong, confident
+  "bella": "EXAVITQu4vr4xnSDxMaL", // Bella - Soft, gentle
+  "domi": "AZnzlk1XvdvUeBnXmlld", // Domi - Energetic, vibrant
+  "elli": "MF3mGyEYCl7XYWbV9V6O", // Elli - Calm, soothing
+  "josh": "TxGEqnHWrfWFTfGW9XjX", // Josh - Casual, conversational
+  "sam": "yoZ06aMxZJJ28mfd3POQ", // Sam - Balanced, versatile
+};
+
 export async function generateVoiceAudio(params: {
   script: string;
   voice?: string;
   speed?: number;
 }): Promise<Buffer> {
   const apiKey = process.env.ELEVEN_LABS_API_KEY;
-  const { script, voice = "21m00Tcm4TlvDq8ikWAM", speed = 1.0 } = params;
+  const { script, voice: voiceName = "rachel", speed = 1.0 } = params;
+  
+  // Map friendly voice name to Eleven Labs voice ID
+  const voiceId = ELEVEN_LABS_VOICES[voiceName.toLowerCase()] || ELEVEN_LABS_VOICES["rachel"];
   
   if (!apiKey) {
     throw new Error("Eleven Labs API key not configured. Please set ELEVEN_LABS_API_KEY environment variable.");
@@ -239,7 +255,7 @@ export async function generateVoiceAudio(params: {
 
   try {
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
         method: "POST",
         headers: {

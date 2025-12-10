@@ -47,14 +47,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col",
           !isSidebarOpen && "-translate-x-full md:hidden"
         )}
       >
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
+        <div className="h-16 flex items-center px-6 border-b border-sidebar-border shrink-0">
           <h1 className="text-lg font-bold tracking-tight">LivingMarket</h1>
         </div>
-        <div className="p-4 space-y-1">
+        <div className="flex-1 overflow-y-auto p-4 space-y-1">
           {NAV_ITEMS.map((item) => {
             const isActive = location === item.href;
             return (
@@ -70,7 +70,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </div>
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="p-4 border-t border-sidebar-border shrink-0">
             <Link href="/login">
                <Button variant="outline" className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground">
                 <LogOut className="w-4 h-4" />
