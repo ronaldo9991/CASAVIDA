@@ -6,6 +6,8 @@ import { ArrowRight, Star, Gem, Truck, ShieldCheck } from "lucide-react";
 import dubaiHero from "@assets/generated_images/dubai_luxury_penthouse_hero.png";
 import bespokeImg from "@assets/generated_images/bespoke_luxury_furniture_detail.png";
 import lifestyleImg from "@assets/generated_images/dubai_waterfront_lifestyle.png";
+import diningImg from "@assets/generated_images/dubai_luxury_dining_room.png";
+import officeImg from "@assets/generated_images/dubai_executive_office.png";
 
 export default function Dubai() {
   return (
@@ -103,10 +105,10 @@ export default function Dubai() {
                 {[
                     { name: "Statement Sofas", img: lifestyleImg },
                     { name: "Master Bedroom", img: dubaiHero },
-                    { name: "Dining & Entertaining", img: bespokeImg },
+                    { name: "Dining & Entertaining", img: diningImg },
                     { name: "Designer Lighting", img: lifestyleImg },
                     { name: "Outdoor Living", img: dubaiHero },
-                    { name: "Executive Office", img: bespokeImg },
+                    { name: "Executive Office", img: officeImg },
                 ].map((cat, i) => (
                     <div key={i} className="group relative aspect-[4/3] overflow-hidden cursor-pointer">
                         <img src={cat.img} alt={cat.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" />

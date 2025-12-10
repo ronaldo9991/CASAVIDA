@@ -5,6 +5,9 @@ import { ArrowRight, MapPin, Sparkles, Heart, IndianRupee } from "lucide-react";
 import indiaHero from "@assets/generated_images/modern_indian_living_room_hero.png";
 import jaipurImg from "@assets/generated_images/jaipur_heritage_interior.png";
 import mumbaiImg from "@assets/generated_images/mumbai_urban_luxury_interior.png";
+import southImg from "@assets/generated_images/south_indian_minimal_interior.png";
+import delhiImg from "@assets/generated_images/delhi_classic_luxury_interior.png";
+import bengalImg from "@assets/generated_images/bengal_crafts_inspired_interior.png";
 
 export default function India() {
   return (
@@ -121,21 +124,26 @@ export default function India() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
                  {[
-                     { t: "South Indian Minimal", d: "Teak wood & tropical vibes" },
-                     { t: "Delhi Classic", d: "Colonial charm meets modern comfort" },
-                     { t: "Bengal Crafts", d: "Artistic weaves & terracotta" }
+                     { t: "South Indian Minimal", d: "Teak wood & tropical vibes", img: southImg },
+                     { t: "Delhi Classic", d: "Colonial charm meets modern comfort", img: delhiImg },
+                     { t: "Bengal Crafts", d: "Artistic weaves & terracotta", img: bengalImg }
                  ].map((c, i) => (
-                     <div key={i} className="bg-white p-6 rounded-xl border border-stone-200 hover:border-amber-200 transition-colors cursor-pointer group">
-                         <div className="flex justify-between items-center mb-4">
-                             <h4 className="font-display text-xl text-stone-800">{c.t}</h4>
-                             <ArrowRight className="w-5 h-5 text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity transform -translate-x-2 group-hover:translate-x-0" />
+                     <div key={i} className="group relative overflow-hidden rounded-xl aspect-[4/3] cursor-pointer">
+                         <img src={c.img} alt={c.t} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                         <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/20 to-transparent" />
+                         <div className="absolute bottom-6 left-6 right-6">
+                             <div className="flex justify-between items-end mb-2">
+                                 <h4 className="font-display text-xl text-white">{c.t}</h4>
+                                 <ArrowRight className="w-5 h-5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity transform -translate-x-2 group-hover:translate-x-0" />
+                             </div>
+                             <p className="text-sm text-stone-300 font-light">{c.d}</p>
                          </div>
-                         <p className="text-sm text-stone-500">{c.d}</p>
                      </div>
                  ))}
             </div>
           </div>
         </section>
+
 
         {/* 4. Middle & Premium Segments */}
         <section className="py-24 max-w-5xl mx-auto px-6 text-center">
