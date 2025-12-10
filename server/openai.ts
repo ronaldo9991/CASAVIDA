@@ -399,14 +399,33 @@ export async function generateVoiceAudio(params: {
       throw new Error(errorMessage);
     }
 
-    // Check if response is actually audio
+    // Check response content type
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('audio') && !contentType.includes('mp3')) {
-      // Murf AI might return JSON with audio URL or base64
+    
+    // Murf AI returns JSON with audioFile URL, not direct audio
+    if (contentType.includes('application/json') || contentType.includes('json')) {
       const data = await response.json();
       
-      if (data.audioUrl) {
-        // If Murf returns a URL, fetch the audio
+      // Murf AI returns audioFile URL in JSON response
+      if (data.audioFile) {
+        console.log("Murf AI returned audioFile URL, fetching audio...");
+        const audioUrl = data.audioFile;
+        
+        // Fetch the audio file from the URL
+        const audioResponse = await fetch(audioUrl);
+        if (audioResponse.ok) {
+          const arrayBuffer = await audioResponse.arrayBuffer();
+          if (arrayBuffer.byteLength > 0) {
+            console.log(`✓ Audio fetched successfully (${arrayBuffer.byteLength} bytes)`);
+            return Buffer.from(arrayBuffer);
+          } else {
+            throw new Error("Audio file from URL is empty");
+          }
+        } else {
+          throw new Error(`Failed to fetch audio from URL: ${audioResponse.status} ${audioResponse.statusText}`);
+        }
+      } else if (data.audioUrl) {
+        // Alternative field name
         const audioResponse = await fetch(data.audioUrl);
         if (audioResponse.ok) {
           const arrayBuffer = await audioResponse.arrayBuffer();
@@ -420,17 +439,24 @@ export async function generateVoiceAudio(params: {
         return Buffer.from(audioData, 'base64');
       } else {
         const errorText = JSON.stringify(data);
-        throw new Error(`Expected audio response but got: ${contentType}. Response: ${errorText.substring(0, 200)}`);
+        throw new Error(`Murf AI response missing audioFile URL. Response: ${errorText.substring(0, 300)}`);
       }
     }
-
-    const arrayBuffer = await response.arrayBuffer();
     
-    if (arrayBuffer.byteLength === 0) {
-      throw new Error("Received empty audio response from Murf AI");
+    // If response is direct audio (unlikely with Murf AI, but handle it)
+    if (contentType.includes('audio') || contentType.includes('mp3')) {
+      const arrayBuffer = await response.arrayBuffer();
+      
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error("Received empty audio response from Murf AI");
+      }
+      
+      return Buffer.from(arrayBuffer);
     }
     
-    return Buffer.from(arrayBuffer);
+    // If we get here, response format is unexpected
+    const responseText = await response.text();
+    throw new Error(`Unexpected response format from Murf AI. Content-Type: ${contentType}, Response: ${responseText.substring(0, 300)}`);
   } catch (error: any) {
     console.error("Murf AI voice generation error:", error);
     
