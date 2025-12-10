@@ -4,7 +4,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip, ScatterChart
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, FileUp, RefreshCw, Database } from "lucide-react";
+import { Upload, FileUp, RefreshCw, Database, Download } from "lucide-react";
 import { useState } from "react";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,26 @@ export default function Segments() {
   const [isUploading, setIsUploading] = useState(false);
 
   // --- Handlers ---
+
+  const handleDownloadDemo = () => {
+    // Generate demo data matching the expected format
+    const demoData = Array.from({ length: 20 }, (_, i) => ({
+      customer_id: `CUST-${1000 + i}`,
+      recency: Math.floor(Math.random() * 365),
+      frequency: Math.floor(Math.random() * 20),
+      monetary: Math.floor(Math.random() * 5000)
+    }));
+
+    const csv = Papa.unparse(demoData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'casavida_segments_demo.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -84,6 +104,10 @@ export default function Segments() {
             <p className="text-muted-foreground">AI-driven customer clustering based on RFM and behavioral data.</p>
           </div>
           <div className="flex items-center gap-2">
+             <Button variant="outline" onClick={handleDownloadDemo} className="gap-2">
+                 <Download className="w-4 h-4" />
+                 Download Demo CSV
+             </Button>
              <Button variant="outline" onClick={regenerateData} className="gap-2">
                  <RefreshCw className="w-4 h-4" />
                  Generate Synthetic
