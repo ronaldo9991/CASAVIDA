@@ -32,18 +32,15 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            {["Collections", "Our Story", "Stores", "Contact"].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className={cn(
-                  "text-sm font-medium hover:opacity-70 transition-opacity",
-                  isScrolled ? "text-stone-900" : "text-white/90"
-                )}
-              >
-                {item}
-              </a>
-            ))}
+            <Link href="/" className={cn("text-sm font-medium hover:opacity-70 transition-opacity", isScrolled ? "text-stone-900" : "text-white/90")}>
+                Collections
+            </Link>
+            <Link href="/dubai" className={cn("text-sm font-medium hover:opacity-70 transition-opacity", isScrolled ? "text-stone-900" : "text-white/90")}>
+                Dubai
+            </Link>
+            <Link href="/india" className={cn("text-sm font-medium hover:opacity-70 transition-opacity", isScrolled ? "text-stone-900" : "text-white/90")}>
+                India
+            </Link>
             <Link href="/login" className={cn("text-xs uppercase tracking-widest opacity-50 hover:opacity-100 transition-opacity", isScrolled ? "text-stone-900" : "text-white")}>
                 Partner Sign In
             </Link>
@@ -67,11 +64,10 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-stone-50 pt-24 px-6 md:hidden animate-in slide-in-from-top-10">
           <div className="flex flex-col space-y-6 text-2xl font-display text-stone-900">
-             {["Collections", "Our Story", "Stores", "Contact"].map((item) => (
-              <a key={item} href="#" onClick={() => setIsMobileMenuOpen(false)}>
-                {item}
-              </a>
-            ))}
+             <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>Collections</Link>
+             <Link href="/dubai" onClick={() => setIsMobileMenuOpen(false)}>Dubai</Link>
+             <Link href="/india" onClick={() => setIsMobileMenuOpen(false)}>India</Link>
+             
              <Link href="/login" className="text-sm font-sans text-stone-500 pt-4" onClick={() => setIsMobileMenuOpen(false)}>
                 Partner Sign In
             </Link>
