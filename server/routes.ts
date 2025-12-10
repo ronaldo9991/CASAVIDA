@@ -16,6 +16,103 @@ import {
 } from "./openai";
 import { z } from "zod";
 
+// Generate full 7190 customer dataset with realistic distribution
+function generateFullCustomerDataset(isAfterStrategy: boolean) {
+  const customers: any[] = [];
+  const regions = ["Dubai", "Mumbai", "Delhi", "Abu Dhabi", "Bangalore"];
+  
+  // Segment sizes: 4200 FH + 890 HE + 2100 OB = 7190
+  const segments = [
+    { 
+      prefix: "FH", 
+      name: "Functional Homemakers", 
+      count: 4200,
+      before: { churnRiskMean: 0.38, churnRiskStd: 0.08, clvMean: 680, clvStd: 120, healthMean: 28, healthStd: 8 },
+      after: { churnRiskMean: 0.15, churnRiskStd: 0.05, clvMean: 820, clvStd: 100, healthMean: 72, healthStd: 10 }
+    },
+    { 
+      prefix: "HE", 
+      name: "Home Enhancers", 
+      count: 890,
+      before: { churnRiskMean: 0.22, churnRiskStd: 0.06, clvMean: 1850, clvStd: 250, healthMean: 42, healthStd: 10 },
+      after: { churnRiskMean: 0.18, churnRiskStd: 0.04, clvMean: 1920, clvStd: 200, healthMean: 55, healthStd: 8 }
+    },
+    { 
+      prefix: "OB", 
+      name: "Occasional Browsers", 
+      count: 2100,
+      before: { churnRiskMean: 0.55, churnRiskStd: 0.12, clvMean: 180, clvStd: 50, healthMean: 18, healthStd: 6 },
+      after: { churnRiskMean: 0.42, churnRiskStd: 0.10, clvMean: 210, clvStd: 45, healthMean: 28, healthStd: 7 }
+    }
+  ];
+
+  let id = 1;
+  
+  // Simple pseudo-random with seed for reproducibility
+  const seededRandom = (seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+
+  for (const seg of segments) {
+    const params = isAfterStrategy ? seg.after : seg.before;
+    
+    for (let i = 0; i < seg.count; i++) {
+      const seed = id * 1000 + i;
+      const rand1 = seededRandom(seed);
+      const rand2 = seededRandom(seed + 1);
+      const rand3 = seededRandom(seed + 2);
+      const rand4 = seededRandom(seed + 3);
+      const rand5 = seededRandom(seed + 4);
+      
+      // Box-Muller transform for normal distribution
+      const u1 = Math.max(0.0001, rand1);
+      const u2 = rand2;
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      
+      const churnRisk = Math.max(0.05, Math.min(0.85, params.churnRiskMean + z * params.churnRiskStd));
+      const actualChurn = Math.max(0.03, churnRisk - 0.02 + rand3 * 0.04);
+      const clv = Math.max(50, Math.round(params.clvMean + (rand4 - 0.5) * params.clvStd * 2));
+      const healthScore = Math.max(5, Math.min(95, Math.round(params.healthMean + (rand5 - 0.5) * params.healthStd * 2)));
+      
+      const purchaseFreq = isAfterStrategy 
+        ? Math.round((2 + rand1 * 3) * 10) / 10 
+        : Math.round((1 + rand1 * 2) * 10) / 10;
+      const avgOrderValue = Math.round(clv / (3 + rand2 * 4));
+      const daysInactive = isAfterStrategy 
+        ? Math.round(5 + rand3 * 30) 
+        : Math.round(20 + rand3 * 80);
+      const totalOrders = Math.round(3 + rand4 * 20);
+      const tenure = Math.round(6 + rand5 * 48);
+      
+      const baseDate = isAfterStrategy ? new Date('2024-08-01') : new Date('2024-02-01');
+      baseDate.setDate(baseDate.getDate() - Math.round(daysInactive));
+      const lastPurchase = baseDate.toISOString().split('T')[0];
+      
+      customers.push({
+        id,
+        customerId: `${seg.prefix}-${String(i + 1).padStart(4, '0')}`,
+        segment: seg.name,
+        predictedChurnRisk: Math.round(churnRisk * 100) / 100,
+        actualChurn: Math.round(actualChurn * 100) / 100,
+        clv,
+        healthScore,
+        purchaseFreq,
+        avgOrderValue,
+        daysInactive,
+        totalOrders,
+        tenure,
+        lastPurchase,
+        region: regions[Math.floor(rand1 * regions.length)]
+      });
+      
+      id++;
+    }
+  }
+  
+  return customers;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -241,6 +338,17 @@ export async function registerRoutes(
       res.json({ script });
     } catch (error: any) {
       console.error("Voice script generation error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============ FULL CUSTOMER DATASET API ============
+  app.get("/api/dataset/customers", (_req: Request, res: Response) => {
+    try {
+      const period = _req.query.period as string || 'before';
+      const customers = generateFullCustomerDataset(period === 'after');
+      res.json(customers);
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });

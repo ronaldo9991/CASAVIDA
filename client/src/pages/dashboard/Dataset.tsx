@@ -180,6 +180,38 @@ export default function Dataset() {
     toast({ title: "Export Complete", description: `${dataset === 'before' ? 'Before' : 'After'} strategy data exported.` });
   };
 
+  const [isDownloading, setIsDownloading] = useState(false);
+  
+  const handleDownloadFullDataset = async (period: 'before' | 'after') => {
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`/api/dataset/customers?period=${period}`);
+      if (!response.ok) throw new Error("Failed to fetch dataset");
+      const data = await response.json();
+      const csv = Papa.unparse(data);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `casavida_full_dataset_${period}_7190_customers.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast({ 
+        title: "Full Dataset Downloaded", 
+        description: `All 7,190 customers (${period === 'before' ? 'before' : 'after'} strategy) exported to CSV.` 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Download Failed", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const scatterData = currentData.map((d: any) => ({
     x: d.predictedChurnRisk * 100,
     y: d.actualChurn ? d.actualChurn * 100 : d.predictedChurnRisk * 100,
@@ -225,6 +257,45 @@ export default function Dataset() {
             <strong>Dataset Explorer</strong> shows the raw customer data powering our analysis. Each row is a customer with their segment, predicted churn risk (our AI's estimate), actual churn (what really happened), CLV (total value), and engagement metrics. Compare "Before" and "After" datasets to see individual customer improvement, or upload your own CSV data for analysis.
           </AlertDescription>
         </Alert>
+
+        <Card className="border-primary/50 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Full Customer Dataset - 7,190 Customers
+            </CardTitle>
+            <CardDescription>
+              Download the complete customer dataset with all details: 4,200 Functional Homemakers + 890 Home Enhancers + 2,100 Occasional Browsers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => handleDownloadFullDataset('before')} 
+                disabled={isDownloading}
+                className="gap-2 border-red-500/50 hover:bg-red-500/10"
+                data-testid="button-download-full-before"
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading ? 'Downloading...' : 'Before Strategy (38% Churn)'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleDownloadFullDataset('after')} 
+                disabled={isDownloading}
+                className="gap-2 border-green-500/50 hover:bg-green-500/10"
+                data-testid="button-download-full-after"
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading ? 'Downloading...' : 'After Strategy (15% Churn)'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Each CSV contains: Customer ID, Segment, Predicted Churn Risk, Actual Churn, CLV, Health Score, Purchase Frequency, Avg Order Value, Days Inactive, Total Orders, Tenure, Last Purchase Date, Region
+            </p>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-red-500/50 bg-red-500/5">
