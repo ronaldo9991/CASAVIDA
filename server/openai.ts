@@ -159,123 +159,91 @@ export async function generateProductImage(params: {
     const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
     
   try {
-    // Use Gemini to create an optimized, detailed prompt for image generation
-    // Gemini will intelligently handle all furniture types (chairs, gaming chairs, space furniture, etc.)
-    const model = client.getGenerativeModel({ 
-      model: "gemini-2.0-flash-exp",
-      generationConfig: {
-        temperature: 0.8,
-        maxOutputTokens: 500,
-      },
-    });
-
-    const promptGenerationRequest = `You are an expert product photographer specializing in EXACT product representation. 
-
-CRITICAL: Generate an image generation prompt that will create an image of EXACTLY: "${productName}"
-
-The user specified: "${productName}" - this is the EXACT product they want to see. Do NOT change it, do NOT interpret it differently, do NOT substitute it.
-
-Context:
-- Brand: CasaVida luxury furniture
-- Style: ${styleDescription}
-${additionalContext ? `- Additional details: ${additionalContext}` : ''}
-
-YOUR TASK:
-Create a precise, detailed image generation prompt that will generate an image of EXACTLY "${productName}".
-
-The prompt must:
-1. Feature "${productName}" as the MAIN and ONLY subject - exactly as specified
-2. If "${productName}" contains "GAMING CHAIR" - show a gaming chair with RGB lighting, ergonomic design, modern gaming aesthetic
-3. If "${productName}" contains "CHAIR" - show that specific type of chair
-4. If "${productName}" contains any furniture type - show that EXACT furniture type
-5. Use professional product photography with ${styleDescription}
-6. Include specific details: materials, colors, design features that match "${productName}"
-7. Professional studio lighting, 4K quality, sharp focus
-8. Clean background that makes "${productName}" the clear focal point
-9. NO text, watermarks, or logos
-
-IMPORTANT: The image MUST show "${productName}" - nothing else. Be precise and literal about what the user requested.
-
-Return ONLY the image generation prompt, nothing else.`;
-
-    let optimizedPrompt: string;
-    try {
-      const result = await model.generateContent(promptGenerationRequest);
-      const response = await result.response;
-      optimizedPrompt = response.text().trim();
-      
-      // Validate the prompt
-      if (!optimizedPrompt || optimizedPrompt.length < 100) {
-        throw new Error("Generated prompt too short");
-      }
-      
-      console.log("Gemini-generated optimized prompt:", optimizedPrompt.substring(0, 200) + "...");
-    } catch (promptError: any) {
-      console.warn("Gemini prompt generation failed, using fallback:", promptError.message);
-      // Fallback: Create a detailed prompt manually
-      optimizedPrompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting setup with professional photography, premium materials clearly visible (wood grain, fabric texture, metal finishes, leather, modern materials), 4K resolution aesthetic, sharp focus, professional composition with 3/4 angle view, clean minimal background that complements the product, product should be the clear focal point, luxury furniture styling, modern design aesthetic. ${additionalContext || ''} The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
-    }
-
-    // Use multiple image generation services for reliability
-    // Try Ideogram first (better quality), then Pollinations as fallback
+    // Create a direct, precise prompt that focuses on the EXACT product name
+    // No interpretation, no substitution - just the exact product the user specified
+    const productNameUpper = productName.toUpperCase();
     
-    // Option 1: Try Ideogram (better quality, free tier available)
-    try {
-      const ideogramUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(optimizedPrompt)}?width=1024&height=1024&model=flux.1-schnell&nologo=true&enhance=true`;
-      
-      const ideogramResponse = await fetch(ideogramUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'image/*',
-        },
-      });
+    // Build a precise, direct prompt that ensures exact product matching
+    let optimizedPrompt = `Professional product photography of ${productName}, luxury furniture, CasaVida brand. `;
+    
+    // Add specific details based on product name keywords
+    if (productNameUpper.includes('GAMING CHAIR') || productNameUpper.includes('GAMING')) {
+      optimizedPrompt += `Modern ergonomic gaming chair with RGB lighting, racing-style design, adjustable armrests, high back support, premium materials, gaming aesthetic. `;
+    } else if (productNameUpper.includes('CHAIR')) {
+      optimizedPrompt += `Premium ${productName}, luxury chair design, high-quality materials, elegant craftsmanship. `;
+    } else if (productNameUpper.includes('SOFA') || productNameUpper.includes('COUCH')) {
+      optimizedPrompt += `Luxury ${productName}, premium sofa, comfortable seating, elegant design, high-end furniture. `;
+    } else if (productNameUpper.includes('TABLE')) {
+      optimizedPrompt += `Premium ${productName}, luxury table, elegant design, high-quality materials. `;
+    } else {
+      optimizedPrompt += `Premium ${productName}, luxury furniture, elegant design, high-quality materials. `;
+    }
+    
+    // Add style description
+    optimizedPrompt += `${styleDescription}. `;
+    
+    // Add photography details
+    optimizedPrompt += `Professional studio photography, 4K quality, sharp focus, perfect lighting, clean minimal background, product is the clear focal point, high-end advertising campaign aesthetic, luxury brand styling. `;
+    
+    // Add any additional context
+    if (additionalContext) {
+      optimizedPrompt += `${additionalContext}. `;
+    }
+    
+    // Final requirements
+    optimizedPrompt += `No text, no watermarks, no logos, product photography only.`;
+    
+    console.log("Direct optimized prompt:", optimizedPrompt.substring(0, 200) + "...");
 
-      if (ideogramResponse.ok) {
-        const imageBlob = await ideogramResponse.blob();
-        if (imageBlob.size > 0) {
-          const arrayBuffer = await imageBlob.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const base64 = buffer.toString('base64');
-          const mimeType = imageBlob.type || 'image/png';
-          
-          console.log("Image generated successfully via Ideogram/Pollinations");
-          return `data:${mimeType};base64,${base64}`;
+    // Use Pollinations.ai with multiple model attempts for reliability and efficiency
+    // Try best quality models first, then fallback to faster models
+    
+    const models = [
+      { name: 'flux-pro', desc: 'Flux Pro (highest quality)' },
+      { name: 'flux.1-schnell', desc: 'Flux Schnell (fast, high quality)' },
+      { name: 'flux', desc: 'Flux (standard quality)' },
+    ];
+    
+    for (const model of models) {
+      try {
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(optimizedPrompt)}?width=1024&height=1024&model=${model.name}&nologo=true&enhance=true&seed=${Date.now()}`;
+        
+        console.log(`Attempting image generation with ${model.desc}...`);
+        
+        const imageResponse = await fetch(imageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/*',
+            'Referer': 'https://pollinations.ai/',
+          },
+        });
+
+        if (imageResponse.ok) {
+          const imageBlob = await imageResponse.blob();
+          if (imageBlob.size > 1000) { // Ensure we got a valid image (at least 1KB)
+            const arrayBuffer = await imageBlob.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64 = buffer.toString('base64');
+            const mimeType = imageBlob.type || 'image/png';
+            
+            console.log(`✓ Image generated successfully using ${model.desc}`);
+            return `data:${mimeType};base64,${base64}`;
+          } else {
+            console.warn(`Image from ${model.name} too small (${imageBlob.size} bytes), trying next model...`);
+          }
+        } else {
+          console.warn(`${model.name} returned status ${imageResponse.status}, trying next model...`);
         }
+      } catch (modelError: any) {
+        console.warn(`${model.name} failed:`, modelError.message);
+        // Continue to next model
       }
-    } catch (ideogramError: any) {
-      console.warn("Ideogram/Pollinations failed, trying alternative:", ideogramError.message);
     }
 
-    // Option 2: Try alternative image generation service
-    try {
-      // Use a different model or service
-      const alternativeUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(optimizedPrompt)}?width=1024&height=1024&model=flux-pro&nologo=true&enhance=true`;
-      
-      const altResponse = await fetch(alternativeUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-        },
-      });
-
-      if (altResponse.ok) {
-        const imageBlob = await altResponse.blob();
-        if (imageBlob.size > 0) {
-          const arrayBuffer = await imageBlob.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const base64 = buffer.toString('base64');
-          const mimeType = imageBlob.type || 'image/png';
-          
-          console.log("Image generated successfully via alternative service");
-          return `data:${mimeType};base64,${base64}`;
-        }
-      }
-    } catch (altError: any) {
-      console.warn("Alternative service failed:", altError.message);
-    }
-
+    // If all models failed, throw error
     throw new Error(
-      "Image generation services are currently unavailable. " +
-      "Please try again in a few moments. The Gemini API is working correctly and has optimized your prompt."
+      "Image generation failed after trying multiple models. " +
+      "Please check your internet connection and try again. The prompt was optimized for: " + productName
     );
   } catch (error: any) {
     console.error("Image generation error:", error);
