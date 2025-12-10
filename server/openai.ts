@@ -332,9 +332,9 @@ export async function generateVoiceAudio(params: {
       throw new Error("Script text is empty after cleaning. Please provide valid text to convert to speech.");
     }
 
-    // Murf AI Text to Speech API - Using correct endpoint and format
-    // Based on Murf AI documentation: https://api.murf.ai/v1/speech/synthesize
-    // Using Text to Speech Falcon model (default high-quality model)
+    // Murf AI Text to Speech API - Using correct endpoint
+    // Based on Murf AI API documentation, the correct endpoint is /v1/speech/generate
+    // Using api-key header (not Bearer token)
     
     // First, fetch available voices to get correct voice IDs
     let finalVoiceId: string | null = null;
@@ -343,8 +343,7 @@ export async function generateVoiceAudio(params: {
       const voicesResponse = await fetch('https://api.murf.ai/v1/speech/voices', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`, // Murf AI uses Bearer token
-          'Content-Type': 'application/json',
+          'api-key': apiKey.trim(), // Murf AI uses api-key header
         },
       });
       
@@ -372,39 +371,40 @@ export async function generateVoiceAudio(params: {
           if (matchingVoice?.voiceId) {
             finalVoiceId = matchingVoice.voiceId;
           }
+        } else if (Array.isArray(voicesData)) {
+          // Direct array format
+          const matchingVoice = voicesData.find((v: any) => 
+            v.name?.toLowerCase().includes(voiceName.toLowerCase()) ||
+            v.voiceId?.toLowerCase().includes(voiceName.toLowerCase())
+          );
+          if (matchingVoice?.voiceId) {
+            finalVoiceId = matchingVoice.voiceId;
+          } else if (voicesData.length > 0) {
+            finalVoiceId = voicesData[0].voiceId;
+          }
         }
       }
     } catch (voiceFetchError: any) {
       console.warn("Could not fetch voices list:", voiceFetchError.message);
     }
 
-    // If we couldn't fetch voices, use common voice names that work with Murf AI
-    if (!finalVoiceId) {
-      // Murf AI common voice formats
-      const fallbackVoices: Record<string, string> = {
-        "rachel": "en-US_Matthew", // Using Matthew as default (commonly available)
-        "adam": "en-US_Matthew",
-        "antoni": "en-US_Matthew",
-        "bella": "en-US_Matthew",
-        "josh": "en-US_Matthew",
-        "sam": "en-US_Matthew",
-      };
-      finalVoiceId = fallbackVoices[voiceName.toLowerCase()] || "en-US_Matthew";
-    }
+    // If we couldn't fetch voices, we'll let the API error tell us what voices are available
+    // Don't use fallback - let the API error guide us to correct voice IDs
 
-    // Murf AI Text to Speech API endpoint (correct format)
-    // Using /synthesize endpoint with Bearer token authentication
-    const response = await fetch('https://api.murf.ai/v1/speech/synthesize', {
+    // Murf AI Text to Speech API endpoint - CORRECT ENDPOINT
+    // Using /v1/speech/generate with api-key header
+    const response = await fetch('https://api.murf.ai/v1/speech/generate', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey.trim()}`, // Murf AI uses Bearer token
+        'api-key': apiKey.trim(), // Murf AI uses api-key header (confirmed)
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        voice: finalVoiceId, // Use 'voice' parameter (not 'voiceId')
         text: cleanScript,
+        voiceId: finalVoiceId || "en-US_Matthew", // Use voiceId parameter
+        speed: speed,
         format: 'mp3',
-        speed: speed, // Speed adjustment
+        sampleRate: 44100,
       }),
     });
 
