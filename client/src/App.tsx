@@ -20,6 +20,7 @@ import CompetitorIntel from "@/pages/dashboard/CompetitorIntel";
 import BlueOcean from "@/pages/dashboard/BlueOcean";
 import Prioritization from "@/pages/dashboard/Prioritization";
 import ManagerSummary from "@/pages/dashboard/ManagerSummary";
+import StrategyResults from "@/pages/dashboard/StrategyResults";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/dashboard/blue-ocean" component={BlueOcean} />
       <Route path="/dashboard/prioritization" component={Prioritization} />
       <Route path="/dashboard/summary" component={ManagerSummary} />
+      <Route path="/dashboard/results" component={StrategyResults} />
 
       {/* Fallback */}
       <Route component={NotFound} />

@@ -15,21 +15,23 @@ import {
   Sun,
   LogOut,
   Menu,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { label: "Creative Studio", icon: Palette, href: "/dashboard/creative" },
+  { label: "Crisis Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Segments", icon: Users, href: "/dashboard/segments" },
   { label: "CLV Analysis", icon: TrendingUp, href: "/dashboard/clv" },
   { label: "Churn Risk", icon: UserMinus, href: "/dashboard/churn" },
   { label: "Competitive Intel", icon: Swords, href: "/dashboard/ci" },
   { label: "Blue Ocean", icon: Compass, href: "/dashboard/blue-ocean" },
   { label: "Prioritization", icon: ListTodo, href: "/dashboard/prioritization" },
+  { label: "6-Month Results", icon: Sparkles, href: "/dashboard/results" },
   { label: "Manager Summary", icon: FileText, href: "/dashboard/summary" },
+  { label: "Creative Studio", icon: Palette, href: "/dashboard/creative" },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {

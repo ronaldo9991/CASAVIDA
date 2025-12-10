@@ -159,25 +159,32 @@ export async function generateVoiceAudio(params: {
 }
 
 function generateMockAudio(script: string): Buffer {
+  const sampleRate = 22050;
+  const duration = Math.min(script.length / 10, 5);
+  const numSamples = Math.floor(sampleRate * duration);
+  
   const header = Buffer.alloc(44);
   header.write('RIFF', 0);
-  header.writeUInt32LE(36 + script.length * 2, 4);
+  header.writeUInt32LE(36 + numSamples * 2, 4);
   header.write('WAVE', 8);
   header.write('fmt ', 12);
   header.writeUInt32LE(16, 16);
   header.writeUInt16LE(1, 20);
   header.writeUInt16LE(1, 22);
-  header.writeUInt32LE(22050, 24);
-  header.writeUInt32LE(44100, 28);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate * 2, 28);
   header.writeUInt16LE(2, 32);
   header.writeUInt16LE(16, 34);
   header.write('data', 36);
-  header.writeUInt32LE(script.length * 2, 40);
+  header.writeUInt32LE(numSamples * 2, 40);
   
-  const samples = Buffer.alloc(script.length * 2);
-  for (let i = 0; i < script.length; i++) {
-    const charCode = script.charCodeAt(i);
-    samples.writeInt16LE(Math.sin(i * 0.1) * charCode * 10, i * 2);
+  const samples = Buffer.alloc(numSamples * 2);
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    const freq = 220 + Math.sin(t * 2) * 50;
+    const value = Math.sin(2 * Math.PI * freq * t) * 8000;
+    const clampedValue = Math.max(-32768, Math.min(32767, Math.round(value)));
+    samples.writeInt16LE(clampedValue, i * 2);
   }
   
   return Buffer.concat([header, samples]);

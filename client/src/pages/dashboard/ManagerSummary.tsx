@@ -1,126 +1,235 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Share, Printer, CheckCircle2, AlertTriangle, TrendingUp } from "lucide-react";
+import { FileText, Download, Printer, CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Users, Target, DollarSign } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
+
+interface DashboardSummary {
+  segments: { total: number; totalCustomers: number; core: any; };
+  kpis: { avgChurnRisk: number; totalClv: number; marketShare: number; };
+  initiatives: { total: number; focus: number; pause: number; };
+  alerts: { type: string; message: string; action: string }[];
+}
+
+const BEFORE_METRICS = {
+  churnRisk: 38,
+  totalClv: 4.88,
+  marketShare: 32,
+  totalCustomers: 7190,
+  coreHealthScore: 28,
+};
+
+const AFTER_METRICS = {
+  churnRisk: 15,
+  totalClv: 6.42,
+  marketShare: 37,
+  totalCustomers: 7220,
+  coreHealthScore: 72,
+};
+
+const KEY_RESULTS = [
+  { metric: "Core Segment Churn", before: "38%", after: "15%", change: "-23%", positive: true },
+  { metric: "Total CLV", before: "$4.88M", after: "$6.42M", change: "+32%", positive: true },
+  { metric: "Market Share", before: "32%", after: "37%", change: "+5%", positive: true },
+  { metric: "Core Health Score", before: "28", after: "72", change: "+44", positive: true },
+  { metric: "Acquisition Cost", before: "$320", after: "$185", change: "-42%", positive: true },
+];
+
+const STRATEGY_ACTIONS = [
+  { action: "Loyalty Program Revamp", status: "Completed", impact: "Retention +23%", cost: "$45K" },
+  { action: "Churn Prediction Model", status: "Completed", impact: "Early detection 78%", cost: "$15K" },
+  { action: "Value Bundle Promotions", status: "Completed", impact: "Basket size +18%", cost: "$12K" },
+  { action: "Premium Influencer Campaign", status: "Paused", impact: "Saved $200K+", cost: "$0" },
+  { action: "Showroom Expansion", status: "Cancelled", impact: "Saved $850K", cost: "$0" },
+];
 
 export default function ManagerSummary() {
+  const { data: summary } = useQuery<DashboardSummary>({
+    queryKey: ["/api/dashboard/summary"],
+  });
+
+  const currentChurn = summary?.kpis?.avgChurnRisk || AFTER_METRICS.churnRisk;
+  const isCrisisMode = currentChurn > 25;
+
   return (
     <DashboardLayout>
-       <div className="flex items-center justify-between mb-8 print:hidden">
-          <div>
-             <h2 className="text-3xl font-bold tracking-tight">Executive Summary</h2>
-             <p className="text-muted-foreground">Automated weekly intelligence briefing for C-Suite.</p>
-          </div>
-          <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
-                  <Printer className="w-4 h-4"/> Print
-              </Button>
-              <Button size="sm" className="gap-2">
-                  <Download className="w-4 h-4"/> Export PDF
-              </Button>
-          </div>
+      <div className="flex items-center justify-between mb-8 print:hidden">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Executive Summary</h2>
+          <p className="text-muted-foreground">CasaVida Strategy Implementation Report - 6 Month Review</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+            <Printer className="w-4 h-4" /> Print
+          </Button>
+          <Button size="sm" className="gap-2">
+            <Download className="w-4 h-4" /> Export PDF
+          </Button>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto bg-card border border-border shadow-sm rounded-xl overflow-hidden print:shadow-none print:border-none">
-          {/* Report Header */}
-          <div className="bg-stone-900 text-white p-8 md:p-12 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-12 opacity-10">
-                   <FileText className="w-64 h-64" />
-               </div>
-               <div className="relative z-10">
-                   <div className="flex justify-between items-start mb-6">
-                       <h1 className="text-3xl font-display font-medium">Weekly Intelligence Report</h1>
-                       <div className="text-right">
-                           <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Period</div>
-                           <div className="font-mono text-sm">Oct 15 - Oct 21, 2025</div>
-                       </div>
-                   </div>
-                   <div className="grid grid-cols-3 gap-8 border-t border-white/20 pt-6">
-                       <div>
-                           <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Revenue</div>
-                           <div className="text-2xl font-bold">$2.4M <span className="text-emerald-400 text-sm font-normal">+12.5%</span></div>
-                       </div>
-                       <div>
-                           <div className="text-xs uppercase tracking-widest opacity-70 mb-1">CAC</div>
-                           <div className="text-2xl font-bold">$45 <span className="text-emerald-400 text-sm font-normal">-8.2%</span></div>
-                       </div>
-                       <div>
-                           <div className="text-xs uppercase tracking-widest opacity-70 mb-1">NPS</div>
-                           <div className="text-2xl font-bold">72 <span className="text-stone-400 text-sm font-normal">--</span></div>
-                       </div>
-                   </div>
-               </div>
+        <div className="bg-stone-900 text-white p-8 md:p-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-12 opacity-10">
+            <FileText className="w-64 h-64" />
           </div>
-
-          <div className="p-8 md:p-12 space-y-10">
-              {/* Executive Overview */}
-              <section>
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
-                      <TrendingUp className="w-5 h-5 text-primary" /> 
-                      Strategic Overview
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                      CasaVida is currently outperforming Q4 projections by <strong>15%</strong>. The launch of the "Autumn Solstice" campaign has successfully engaged the <em>Young Professionals</em> segment, driving a significant uplift in mobile conversion rates. However, supply chain latency for the "Kyoto Collection" remains a critical bottleneck.
-                  </p>
-              </section>
-
-              <Separator />
-
-              {/* Key Highlights */}
-              <section>
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      Wins & Opportunities
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                      <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-lg border border-emerald-100 dark:border-emerald-900">
-                          <h4 className="font-semibold text-sm mb-2 text-emerald-900 dark:text-emerald-200">Creative Studio Impact</h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                              AI-generated email variations increased open rates by 22% this week. The "Minimalist" tone performed best with the Luxury segment.
-                          </p>
-                      </div>
-                      <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-lg border border-emerald-100 dark:border-emerald-900">
-                           <h4 className="font-semibold text-sm mb-2 text-emerald-900 dark:text-emerald-200">Blue Ocean Shift</h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                              Competitor analysis shows West Elm is retreating from the "Sustainable Luxury" keyword space, creating a prime acquisition opportunity.
-                          </p>
-                      </div>
-                  </div>
-              </section>
-
-              <Separator />
-
-              {/* Risks */}
-              <section>
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
-                      <AlertTriangle className="w-5 h-5 text-rose-500" />
-                      Critical Risks & Mitigation
-                  </h3>
-                   <div className="space-y-3">
-                       <div className="flex items-start gap-3">
-                           <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-2 shrink-0" />
-                           <p className="text-sm text-muted-foreground">
-                               <strong>Inventory Alert:</strong> "Kyoto Lounge Chair" stock is critical (less than 2 weeks supply). 
-                               <br/><span className="text-xs italic text-rose-500">Action: Expedite shipment #4421 from Mumbai via air freight.</span>
-                           </p>
-                       </div>
-                       <div className="flex items-start gap-3">
-                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-                           <p className="text-sm text-muted-foreground">
-                               <strong>Churn Risk:</strong> 124 High-Value customers showed decreased activity.
-                               <br/><span className="text-xs italic text-amber-500">Action: Auto-trigger "We Miss You" personalized offer via Retention Flow.</span>
-                           </p>
-                       </div>
-                   </div>
-              </section>
-
-              {/* Footer */}
-              <div className="pt-8 mt-4 border-t border-dashed border-border flex justify-between items-center text-xs text-muted-foreground">
-                  <p>Generated by LivingMarket AI Engine</p>
-                  <p>Confidential • Internal Use Only</p>
+          <div className="relative z-10">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h1 className="text-3xl font-display font-medium">Strategy Results Report</h1>
+                <p className="text-white/70 mt-1">6-Month Implementation Review</p>
               </div>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Status</div>
+                <div className="font-mono text-sm text-emerald-400">SUCCESS</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-6 border-t border-white/20 pt-6">
+              <div>
+                <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Churn</div>
+                <div className="text-2xl font-bold">
+                  {AFTER_METRICS.churnRisk}% 
+                  <span className="text-emerald-400 text-sm font-normal ml-1">-23%</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Total CLV</div>
+                <div className="text-2xl font-bold">
+                  ${AFTER_METRICS.totalClv}M 
+                  <span className="text-emerald-400 text-sm font-normal ml-1">+32%</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Market Share</div>
+                <div className="text-2xl font-bold">
+                  {AFTER_METRICS.marketShare}% 
+                  <span className="text-emerald-400 text-sm font-normal ml-1">+5%</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-widest opacity-70 mb-1">Saved</div>
+                <div className="text-2xl font-bold text-emerald-400">$1.05M</div>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="p-8 md:p-12 space-y-10">
+          <section>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Executive Overview
+            </h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              CasaVida has successfully reversed its declining trajectory by implementing a <strong>core-segment-first strategy</strong>. 
+              The company shifted focus from chasing the premium "Home Enhancer" segment to protecting and growing the core "Functional Homemaker" base.
+              Over 6 months, this resulted in a <strong>23% reduction in core churn</strong>, <strong>$1.54M increase in total CLV</strong>, 
+              and <strong>$1.05M in cost savings</strong> from paused/cancelled initiatives.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              Key Performance Improvements
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 font-medium">Metric</th>
+                    <th className="text-center py-2 font-medium">Before</th>
+                    <th className="text-center py-2 font-medium"></th>
+                    <th className="text-center py-2 font-medium">After</th>
+                    <th className="text-right py-2 font-medium">Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {KEY_RESULTS.map((row, i) => (
+                    <tr key={i} className="border-b">
+                      <td className="py-3">{row.metric}</td>
+                      <td className="text-center py-3 text-muted-foreground">{row.before}</td>
+                      <td className="text-center py-3"><ArrowRight className="w-3 h-3 mx-auto text-muted-foreground" /></td>
+                      <td className="text-center py-3 font-medium">{row.after}</td>
+                      <td className={`text-right py-3 font-bold ${row.positive ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {row.change}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <Separator />
+
+          <section>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
+              <Target className="w-5 h-5 text-primary" />
+              Strategic Actions Taken
+            </h3>
+            <div className="space-y-3">
+              {STRATEGY_ACTIONS.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-2 border-b border-dashed">
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                      item.status === 'Completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' :
+                      item.status === 'Paused' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                      'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                    }`}>
+                      {item.status}
+                    </span>
+                    <span className="text-sm font-medium">{item.action}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-emerald-600">{item.impact}</span>
+                    <span className="text-muted-foreground">{item.cost}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          <section>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900 dark:text-white">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Lessons Learned
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong>Core Over Premium:</strong> Chasing new premium segments while neglecting core customers is a classic failure pattern. 
+                  Protecting the profit engine must come first.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong>Data-Driven Prioritization:</strong> The initiative prioritization board helped identify high-impact, low-effort actions 
+                  and pause resource-draining premium expansion.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  <strong>Proactive Retention:</strong> The churn prediction model enabled early intervention, 
+                  reducing reactive firefighting and improving customer relationships.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <div className="pt-8 mt-4 border-t border-dashed border-border flex justify-between items-center text-xs text-muted-foreground">
+            <p>Generated by LivingMarket AI Engine</p>
+            <p>Confidential • Internal Use Only</p>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -1,13 +1,33 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, AlertTriangle, Shield, TrendingUp } from "lucide-react";
-import { useMemo } from "react";
+import { Download, Loader2, AlertTriangle, Shield, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import type { Competitor } from "@shared/schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const BEFORE_COMPETITORS = [
+  { name: "HomeStyle Direct", marketShare: 28, threat: "high", priceIndex: 92, sentiment: 82 },
+  { name: "ModernNest", marketShare: 18, threat: "high", priceIndex: 115, sentiment: 78 },
+  { name: "ValueHome", marketShare: 22, threat: "medium", priceIndex: 78, sentiment: 68 },
+];
+
+const AFTER_COMPETITORS = [
+  { name: "HomeStyle Direct", marketShare: 26, threat: "medium", priceIndex: 92, sentiment: 80 },
+  { name: "ModernNest", marketShare: 17, threat: "medium", priceIndex: 115, sentiment: 76 },
+  { name: "ValueHome", marketShare: 20, threat: "low", priceIndex: 78, sentiment: 65 },
+];
+
+const MARKET_SHARE_PROGRESSION = [
+  { month: "Before", casaVida: 32, homeStyle: 28, modernNest: 18, valueHome: 22 },
+  { month: "Month 2", casaVida: 33, homeStyle: 28, modernNest: 18, valueHome: 21 },
+  { month: "Month 4", casaVida: 35, homeStyle: 27, modernNest: 17, valueHome: 21 },
+  { month: "After", casaVida: 37, homeStyle: 26, modernNest: 17, valueHome: 20 },
+];
 
 export default function CompetitorIntel() {
   const { toast } = useToast();
@@ -77,12 +97,16 @@ export default function CompetitorIntel() {
 
   const highThreatCount = competitors.filter(c => c.threat === "high").length;
 
+  const beforeMarketShare = 100 - BEFORE_COMPETITORS.reduce((acc, c) => acc + c.marketShare, 0);
+  const afterMarketShare = 100 - AFTER_COMPETITORS.reduce((acc, c) => acc + c.marketShare, 0);
+  const marketShareGain = afterMarketShare - beforeMarketShare;
+
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Competitive Intelligence</h2>
-          <p className="text-muted-foreground">Market positioning and threat analysis.</p>
+          <p className="text-muted-foreground">Before vs After strategy: Market positioning and threat analysis</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleExportCompetitors} className="gap-2" data-testid="button-export">
@@ -91,6 +115,64 @@ export default function CompetitorIntel() {
           </Button>
         </div>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card className="border-green-500/50 bg-green-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Market Share Gain</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">+{marketShareGain}%</div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span>{beforeMarketShare}%</span>
+              <ArrowRight className="w-3 h-3" />
+              <span className="text-green-600">{afterMarketShare}%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Threat Reduction</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">2 → 0</div>
+            <p className="text-xs text-muted-foreground">High-threat competitors neutralized</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Competitive Position</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">Strengthened</div>
+            <p className="text-xs text-muted-foreground">Via value-focused strategy</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Market Share Progression</CardTitle>
+          <CardDescription>CasaVida vs competitors over 6 months</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={MARKET_SHARE_PROGRESSION} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} domain={[0, 50]} tickFormatter={(v) => `${v}%`} />
+              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))" }} formatter={(value) => [`${value}%`, '']} />
+              <Legend />
+              <Line type="monotone" dataKey="casaVida" name="CasaVida" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="homeStyle" name="HomeStyle Direct" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="modernNest" name="ModernNest" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="valueHome" name="ValueHome" stroke="#6b7280" strokeWidth={2} dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {competitors.length === 0 && !isLoading && (
         <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
