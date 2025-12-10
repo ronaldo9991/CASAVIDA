@@ -21,6 +21,7 @@ import BlueOcean from "@/pages/dashboard/BlueOcean";
 import Prioritization from "@/pages/dashboard/Prioritization";
 import ManagerSummary from "@/pages/dashboard/ManagerSummary";
 import StrategyResults from "@/pages/dashboard/StrategyResults";
+import Strategy from "@/pages/dashboard/Strategy";
 import Dataset from "@/pages/dashboard/Dataset";
 import Reports from "@/pages/dashboard/Reports";
 
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/dashboard" component={DashboardHome} />
       <Route path="/dashboard/creative" component={CreativeStudio} />
       <Route path="/dashboard/segments" component={Segments} />
+      <Route path="/dashboard/strategy" component={Strategy} />
       <Route path="/dashboard/clv" component={CLV} />
       <Route path="/dashboard/churn" component={Churn} />
       <Route path="/dashboard/ci" component={CompetitorIntel} />

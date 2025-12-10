@@ -25,11 +25,12 @@ import { useState } from "react";
 const NAV_ITEMS = [
   { label: "Crisis Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Segments", icon: Users, href: "/dashboard/segments" },
+  { label: "Recovery Strategy", icon: Sparkles, href: "/dashboard/strategy" },
   { label: "CLV Analysis", icon: TrendingUp, href: "/dashboard/clv" },
   { label: "Churn Risk", icon: UserMinus, href: "/dashboard/churn" },
   { label: "Competitive Intel", icon: Swords, href: "/dashboard/ci" },
   { label: "Blue Ocean", icon: Compass, href: "/dashboard/blue-ocean" },
-  { label: "6-Month Results", icon: Sparkles, href: "/dashboard/results" },
+  { label: "6-Month Results", icon: FileText, href: "/dashboard/results" },
   { label: "Crisis Report", icon: ClipboardList, href: "/dashboard/reports" },
   { label: "Dataset Explorer", icon: Database, href: "/dashboard/dataset" },
   { label: "Manager Summary", icon: FileText, href: "/dashboard/summary" },
