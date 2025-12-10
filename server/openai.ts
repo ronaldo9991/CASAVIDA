@@ -175,59 +175,69 @@ ${additionalContext ? `- Additional context: ${additionalContext}` : ''}
 The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
 
   try {
-    // Using Gemini 2.5 Flash Image model for image generation
-    // This model is specifically designed for image generation
-    let model;
+    // Enhanced prompt for image generation
+    const baseImagePrompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting setup with professional photography, premium materials clearly visible (wood grain, fabric texture, metal finishes), 4K resolution aesthetic, sharp focus, professional composition, clean background that complements the product, product should be the clear focal point. ${additionalContext || ''} The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
+
+    // Use Gemini to enhance the prompt for better image generation
+    const model = client.getGenerativeModel({ 
+      model: "gemini-2.0-flash-exp",
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 300,
+      },
+    });
+
+    const enhancementPrompt = `You are an expert at creating detailed prompts for AI image generation. Enhance this product photography prompt to be extremely specific and detailed for generating high-quality images:
+
+${baseImagePrompt}
+
+Create an enhanced, detailed prompt that includes:
+- Specific lighting details (soft studio lighting, natural window light, etc.)
+- Exact composition and camera angle
+- Color palette and mood
+- Texture details
+- Background description
+- Professional photography style
+
+Return ONLY the enhanced prompt, nothing else.`;
+
+    let enhancedPrompt = baseImagePrompt;
     try {
-      // Try the image-specific model first
-      model = client.getGenerativeModel({ 
-        model: "gemini-2.5-flash-image",
-        generationConfig: {
-          temperature: 0.7,
-        },
-      });
-    } catch (modelError) {
-      // Fallback to 2.0 flash if image model not available
-      console.warn("Image-specific model not available, trying flash-exp:", modelError);
-      model = client.getGenerativeModel({ 
-        model: "gemini-2.0-flash-exp",
-        generationConfig: {
-          temperature: 0.7,
-        },
-      });
-    }
-
-    // Request image generation with explicit instruction
-    const imagePrompt = `Generate a professional product photography image based on this description: ${prompt}`;
-
-    const result = await model.generateContent(imagePrompt);
-    const response = await result.response;
-    
-    // Extract image from response
-    const candidates = response.candidates;
-    if (!candidates || candidates.length === 0) {
-      throw new Error("No image generated in response");
-    }
-
-    const parts = candidates[0].content.parts;
-    for (const part of parts) {
-      // Check if this part contains image data
-      if (part.inlineData) {
-        const imageData = part.inlineData.data;
-        const mimeType = part.inlineData.mimeType || 'image/png';
-        
-        // Return as data URL
-        return `data:${mimeType};base64,${imageData}`;
+      const result = await model.generateContent(enhancementPrompt);
+      const response = await result.response;
+      const enhanced = response.text().trim();
+      if (enhanced && enhanced.length > 50) {
+        enhancedPrompt = enhanced;
       }
+    } catch (enhanceError) {
+      console.warn("Gemini prompt enhancement failed, using base prompt:", enhanceError);
+      // Continue with base prompt
     }
 
-    // If no image found, the model might have returned text instead
-    // This can happen if the model doesn't support image generation
-    const textResponse = response.text();
-    throw new Error(`No image data found in Gemini response. Response was: ${textResponse.substring(0, 100)}`);
+    // Use Pollinations.ai (free image generation API) with Gemini-enhanced prompt
+    // This ensures images actually generate while using Gemini for intelligent prompt enhancement
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&model=flux&nologo=true&enhance=true`;
+    
+    const imageResponse = await fetch(pollinationsUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
+    });
+
+    if (!imageResponse.ok) {
+      throw new Error(`Image generation API error: ${imageResponse.status} ${imageResponse.statusText}`);
+    }
+
+    const imageBlob = await imageResponse.blob();
+    const arrayBuffer = await imageBlob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+    const mimeType = imageBlob.type || 'image/png';
+    
+    return `data:${mimeType};base64,${base64}`;
   } catch (error: any) {
-    console.error("Gemini image generation error:", error);
-    throw new Error(`Failed to generate image: ${error.message || "Unknown error"}`);
+    console.error("Image generation error:", error);
+    throw new Error(`Failed to generate image: ${error.message || "Unknown error. Please check your GEMINI_API_KEY is configured."}`);
   }
 }
 

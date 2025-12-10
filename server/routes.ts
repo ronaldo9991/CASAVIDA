@@ -330,7 +330,7 @@ export async function registerRoutes(
       } else {
         console.error("Image generation error:", error);
         res.status(500).json({ 
-          error: error.message || "Failed to generate image. Please ensure HUGGINGFACE_API_KEY is configured." 
+          error: error.message || "Failed to generate image. Please ensure GEMINI_API_KEY is configured and has image generation permissions." 
         });
       }
     }
