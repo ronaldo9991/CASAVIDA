@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, TrendingDown, TrendingUp, ArrowRight, CheckCircle, Users } from "lucide-react";
+import { AlertTriangle, TrendingDown, TrendingUp, ArrowRight, CheckCircle, Users, Info } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ComposedChart, Area } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import type { Segment } from "@shared/schema";
@@ -63,6 +63,13 @@ export default function Churn() {
         <h2 className="text-3xl font-bold tracking-tight">Churn Risk Analysis</h2>
         <p className="text-muted-foreground">Before vs After strategy implementation - Customer retention metrics</p>
       </div>
+
+      <Alert className="mb-6 border-blue-500/50 bg-blue-500/5">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-sm">
+          <strong>Churn Risk Analysis</strong> predicts which customers are likely to stop buying from you. A high churn risk percentage means more customers are at risk of leaving. This page compares our "Before" crisis state (high churn) with "After" our 6-month recovery strategy (reduced churn). The goal is to identify at-risk customers early and retain them.
+        </AlertDescription>
+      </Alert>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="border-green-500/50 bg-green-500/5">

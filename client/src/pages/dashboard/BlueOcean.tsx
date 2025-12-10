@@ -2,7 +2,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowRight, TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const BEFORE_STRATEGY = [
   { factor: 'Premium Showroom', before: 8, industry: 6 },
@@ -79,6 +80,13 @@ export default function BlueOcean() {
         <h2 className="text-3xl font-bold tracking-tight">Blue Ocean Strategy</h2>
         <p className="text-muted-foreground">Value curve transformation: Before vs After strategy implementation</p>
       </div>
+
+      <Alert className="mb-6 border-blue-500/50 bg-blue-500/5">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-sm">
+          <strong>Blue Ocean Strategy</strong> is a framework for creating new market space rather than competing in existing markets. The "Strategy Canvas" shows how we invest across different factors compared to competitors. The "ERRC Grid" shows what we Eliminate, Reduce, Raise, and Create. This shift helped CasaVida focus on customer retention over expensive acquisition.
+        </AlertDescription>
+      </Alert>
 
       <Tabs defaultValue="comparison" className="space-y-6">
         <TabsList>

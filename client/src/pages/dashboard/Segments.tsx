@@ -2,7 +2,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, AlertTriangle, TrendingDown, TrendingUp, Heart } from "lucide-react";
+import { Download, Loader2, AlertTriangle, TrendingDown, TrendingUp, Heart, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMemo } from "react";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +92,13 @@ export default function Segments() {
           </Button>
         </div>
       </div>
+
+      <Alert className="mb-6 border-blue-500/50 bg-blue-500/5">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-sm">
+          <strong>Customer Segments</strong> groups your customers based on behavior and value. Each segment shows its health score (overall wellness), churn risk (likelihood to leave), and CLV trend (spending direction). The "Core Segment" is your most valuable group that needs protection. Use this to prioritize which customers to focus retention efforts on.
+        </AlertDescription>
+      </Alert>
 
       {segments.length === 0 && !isLoading && (
         <Card className="mb-8 border-amber-500/50 bg-amber-500/5">

@@ -32,8 +32,10 @@ import {
   Pause,
   Play,
   Brain,
-  Download
+  Download,
+  Info
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -163,6 +165,13 @@ export default function DashboardHome() {
             </Button>
           </div>
         </div>
+
+        <Alert className="border-blue-500/50 bg-blue-500/5">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm">
+            <strong>Crisis Command Center</strong> is your central hub for monitoring CasaVida's business health. It shows real-time KPIs like churn risk, customer lifetime value, and market position. The AI provides strategic recommendations based on current data. Click "Load Crisis Data" to simulate the failing company scenario.
+          </AlertDescription>
+        </Alert>
 
         {!hasData && !summaryLoading && (
           <Card className="border-dashed border-2">

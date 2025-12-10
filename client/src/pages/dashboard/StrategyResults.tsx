@@ -42,8 +42,10 @@ import {
   AlertTriangle,
   Shield,
   Download,
-  Sparkles
+  Sparkles,
+  Info
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
@@ -229,6 +231,13 @@ export default function StrategyResults() {
             Export Results
           </Button>
         </div>
+
+        <Alert className="border-blue-500/50 bg-blue-500/5">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm">
+            <strong>6-Month Results</strong> is the comprehensive outcome report of our recovery strategy. It shows measurable improvements across all key metrics: churn reduction, CLV growth, customer retention, and market position. Use the tabs to explore detailed before/after comparisons, monthly progression, and the specific actions that drove these results.
+          </AlertDescription>
+        </Alert>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="border-green-500/50 bg-green-500/5">

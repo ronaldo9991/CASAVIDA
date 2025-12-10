@@ -35,7 +35,8 @@ import {
   Area,
   ComposedChart,
 } from "recharts";
-import { Upload, Download, FileSpreadsheet, TrendingDown, TrendingUp, Users, AlertTriangle, CheckCircle } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, TrendingDown, TrendingUp, Users, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState, useRef } from "react";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
@@ -217,6 +218,13 @@ export default function Dataset() {
             </Button>
           </div>
         </div>
+
+        <Alert className="border-blue-500/50 bg-blue-500/5">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm">
+            <strong>Dataset Explorer</strong> shows the raw customer data powering our analysis. Each row is a customer with their segment, predicted churn risk (our AI's estimate), actual churn (what really happened), CLV (total value), and engagement metrics. Compare "Before" and "After" datasets to see individual customer improvement, or upload your own CSV data for analysis.
+          </AlertDescription>
+        </Alert>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-red-500/50 bg-red-500/5">

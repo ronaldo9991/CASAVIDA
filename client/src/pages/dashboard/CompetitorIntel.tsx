@@ -2,7 +2,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, AlertTriangle, Shield, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { Download, Loader2, AlertTriangle, Shield, TrendingUp, TrendingDown, ArrowRight, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMemo, useState } from "react";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
@@ -115,6 +116,13 @@ export default function CompetitorIntel() {
           </Button>
         </div>
       </div>
+
+      <Alert className="mb-6 border-blue-500/50 bg-blue-500/5">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-sm">
+          <strong>Competitive Intelligence</strong> tracks your position vs competitors. Market share shows your portion of total customers. Threat level indicates how aggressively competitors target your customers. This page shows how our strategy improved CasaVida's competitive position by gaining market share and reducing competitor threats.
+        </AlertDescription>
+      </Alert>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="border-green-500/50 bg-green-500/5">

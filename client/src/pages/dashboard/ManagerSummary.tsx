@@ -1,7 +1,8 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Printer, CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Users, Target, DollarSign } from "lucide-react";
+import { FileText, Download, Printer, CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Users, Target, DollarSign, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 
@@ -68,6 +69,13 @@ export default function ManagerSummary() {
           </Button>
         </div>
       </div>
+
+      <Alert className="mb-6 border-blue-500/50 bg-blue-500/5 print:hidden">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-sm">
+          <strong>Executive Summary</strong> is a print-ready report for management and stakeholders. It provides a high-level overview of the crisis situation, the strategy implemented, and the measurable results after 6 months. Use the Print button to generate a professional report document.
+        </AlertDescription>
+      </Alert>
 
       <div className="max-w-4xl mx-auto bg-card border border-border shadow-sm rounded-xl overflow-hidden print:shadow-none print:border-none">
         <div className="bg-stone-900 text-white p-8 md:p-12 relative overflow-hidden">

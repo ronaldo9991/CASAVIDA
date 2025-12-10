@@ -47,7 +47,9 @@ import {
   Shield,
   Lightbulb,
   BarChart3,
+  Info,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import Papa from "papaparse";
 
@@ -249,7 +251,7 @@ export default function Reports() {
       <div className="space-y-8 animate-in fade-in-50 duration-500">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2" data-testid="reports-header">
               <BarChart3 className="w-7 h-7 text-primary" />
               Crisis & Recovery Report
             </h2>
@@ -268,6 +270,13 @@ export default function Reports() {
             </Button>
           </div>
         </div>
+
+        <Alert className="border-blue-500/50 bg-blue-500/5">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm">
+            <strong>Crisis Report</strong> is a comprehensive document detailing CasaVida's business crisis and recovery journey. The "Overview" tab shows key metrics, "Crisis Analysis" identifies root causes, "Solution" documents the strategy implemented, and "6-Month Results" shows measurable outcomes. Export the full report for stakeholder presentations.
+          </AlertDescription>
+        </Alert>
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid grid-cols-4 w-full max-w-2xl">

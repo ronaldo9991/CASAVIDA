@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Image as ImageIcon, Mic, Share2, Download, Copy, Loader2, Play, Pause, Music, Wand2, FileText } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Mic, Share2, Download, Copy, Loader2, Play, Pause, Music, Wand2, FileText, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -209,6 +210,13 @@ export default function CreativeStudio() {
           <p className="text-muted-foreground">AI-powered campaign generation using GPT-5, DALL-E 3, and TTS-1-HD.</p>
         </div>
       </div>
+
+      <Alert className="mb-6 border-blue-500/50 bg-blue-500/5">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-sm">
+          <strong>Creative Studio</strong> uses AI to generate marketing content. Enter a product name and target segment, then generate marketing copy (text), product images (visual), and voice scripts (audio) for campaigns. The AI creates multiple variations optimized for different platforms like Instagram, Email, or Website banners.
+        </AlertDescription>
+      </Alert>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
