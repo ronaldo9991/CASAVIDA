@@ -262,7 +262,23 @@ export async function generateVoiceAudio(params: {
     throw new Error("Eleven Labs API key not configured. Please set ELEVEN_LABS_API_KEY environment variable.");
   }
 
+  // Validate API key format (should be a string, not empty)
+  if (typeof apiKey !== 'string' || apiKey.trim().length === 0) {
+    throw new Error("Invalid Eleven Labs API key format. Please check your ELEVEN_LABS_API_KEY environment variable.");
+  }
+
   try {
+    // Clean the script text - remove stage directions and extra whitespace
+    const cleanScript = script
+      .replace(/\([^)]*\)/g, '') // Remove text in parentheses (stage directions)
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+
+    if (!cleanScript || cleanScript.length === 0) {
+      throw new Error("Script text is empty after cleaning. Please provide valid text to convert to speech.");
+    }
+
+    // Eleven Labs API v1 text-to-speech endpoint
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
@@ -270,10 +286,10 @@ export async function generateVoiceAudio(params: {
         headers: {
           "Accept": "audio/mpeg",
           "Content-Type": "application/json",
-          "xi-api-key": apiKey,
+          "xi-api-key": apiKey.trim(), // Ensure no extra whitespace
         },
         body: JSON.stringify({
-          text: script,
+          text: cleanScript,
           model_id: "eleven_multilingual_v2", // Best quality multilingual model
           voice_settings: {
             stability: 0.6, // Higher stability for professional voice
@@ -281,22 +297,72 @@ export async function generateVoiceAudio(params: {
             style: 0.3, // Moderate style for natural delivery
             use_speaker_boost: true, // Enhanced clarity
           },
-          generation_config: {
-            speed: speed,
-          },
+          // Note: Speed adjustment may need to be done via voice_settings or post-processing
+          // Eleven Labs API v1 doesn't support speed in generation_config
         }),
       }
     );
 
     if (!response.ok) {
+      let errorMessage = `Eleven Labs API error: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorData = await response.json();
+        
+        // Parse Eleven Labs error response
+        if (errorData.detail) {
+          const detail = errorData.detail;
+          
+          if (detail.status === "detected_unusual_activity") {
+            errorMessage = `Eleven Labs Free Tier Disabled: ${detail.message || "Unusual activity detected. This may be due to using a proxy/VPN or multiple free accounts. Please use a paid Eleven Labs subscription or contact Eleven Labs support."}`;
+          } else if (detail.status === "voice_not_found") {
+            errorMessage = `Voice not found: ${detail.message || `The voice ID "${voiceId}" (${voiceName}) is not available. Please select a different voice.`}`;
+          } else if (detail.message) {
+            errorMessage = `Eleven Labs Error: ${detail.message}`;
+          } else {
+            errorMessage = `Eleven Labs API Error: ${JSON.stringify(detail)}`;
+          }
+        } else if (errorData.message) {
+          errorMessage = `Eleven Labs Error: ${errorData.message}`;
+        } else {
+          errorMessage = `Eleven Labs API Error: ${JSON.stringify(errorData)}`;
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, try to get text
+        const errorText = await response.text().catch(() => 'Unknown error');
+        errorMessage = `Eleven Labs API error: ${response.status} ${response.statusText} - ${errorText}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // Check if response is actually audio
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('audio')) {
       const errorText = await response.text();
-      throw new Error(`Eleven Labs API error: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(`Expected audio response but got: ${contentType}. Response: ${errorText.substring(0, 200)}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
+    
+    if (arrayBuffer.byteLength === 0) {
+      throw new Error("Received empty audio response from Eleven Labs");
+    }
+    
     return Buffer.from(arrayBuffer);
   } catch (error: any) {
     console.error("Eleven Labs voice generation error:", error);
+    
+    // Provide user-friendly error messages
+    if (error.message.includes("detected_unusual_activity") || error.message.includes("Free Tier")) {
+      throw new Error(
+        "Eleven Labs Free Tier is disabled due to detected unusual activity. " +
+        "This can happen if you're using a proxy/VPN or have multiple free accounts. " +
+        "Please upgrade to a paid Eleven Labs subscription to continue using voice generation. " +
+        "Visit https://elevenlabs.io/pricing for subscription options."
+      );
+    }
+    
     throw new Error(`Failed to generate voice audio: ${error.message || "Unknown error"}`);
   }
 }
