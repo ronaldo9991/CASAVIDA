@@ -124,7 +124,6 @@ export async function registerRoutes(
     res.json({ 
       configured: isOpenAIConfigured(),
       hasGemini: !!process.env.GEMINI_API_KEY,
-      hasHuggingFace: !!process.env.HUGGINGFACE_API_KEY,
       hasElevenLabs: !!process.env.ELEVEN_LABS_API_KEY,
     });
   });

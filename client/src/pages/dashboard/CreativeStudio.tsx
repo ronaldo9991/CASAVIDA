@@ -243,7 +243,7 @@ export default function CreativeStudio() {
             Creative Studio 
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-wider font-bold">Live</span>
           </h2>
-          <p className="text-muted-foreground">AI-powered campaign generation using Gemini, Hugging Face Stable Diffusion, and Eleven Labs.</p>
+          <p className="text-muted-foreground">AI-powered campaign generation using Gemini (text & images) and Eleven Labs (voice).</p>
         </div>
       </div>
 

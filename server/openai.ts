@@ -142,11 +142,11 @@ export async function generateProductImage(params: {
   visualStyle?: string;
   additionalContext?: string;
 }): Promise<string> {
+  const client = getGeminiClient();
   const { productName, visualStyle, additionalContext } = params;
   
-  const apiKey = process.env.HUGGINGFACE_API_KEY;
-  if (!apiKey) {
-    throw new Error("Hugging Face API key not configured. Please set HUGGINGFACE_API_KEY environment variable.");
+  if (!client) {
+    throw new Error("Gemini API key not configured. Please set GEMINI_API_KEY environment variable.");
   }
 
   // Enhanced style mapping with more detail
@@ -158,66 +158,75 @@ export async function generateProductImage(params: {
   
   const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
   
-  // Enhanced prompt for Stable Diffusion
-  const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting setup with professional photography, premium materials clearly visible (wood grain, fabric texture, metal finishes), 4K resolution aesthetic, sharp focus, professional composition, clean background that complements the product, product should be the clear focal point. ${additionalContext || ''} The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
+  // Enhanced prompt for Gemini image generation
+  const prompt = `Create a professional product photography image of ${productName} for CasaVida luxury furniture brand. 
+
+Style: ${styleDescription}
+
+Requirements:
+- High-end advertising campaign quality
+- Studio lighting setup with professional photography
+- Premium materials clearly visible (wood grain, fabric texture, metal finishes)
+- 4K resolution aesthetic with sharp focus
+- Professional composition with clean background that complements the product
+- Product should be the clear focal point
+${additionalContext ? `- Additional context: ${additionalContext}` : ''}
+
+The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
 
   try {
-    // Using Hugging Face Stable Diffusion XL model via Inference API
-    // Note: First request might take longer as model loads (cold start)
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+    // Using Gemini 2.5 Flash Image model for image generation
+    // This model is specifically designed for image generation
+    let model;
+    try {
+      // Try the image-specific model first
+      model = client.getGenerativeModel({ 
+        model: "gemini-2.5-flash-image",
+        generationConfig: {
+          temperature: 0.7,
         },
-        method: "POST",
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            num_inference_steps: 50,
-            guidance_scale: 7.5,
-            width: 1024,
-            height: 1024,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      // Check if model is loading (503 status)
-      if (response.status === 503) {
-        const errorData = JSON.parse(errorText || '{}');
-        if (errorData.estimated_time) {
-          throw new Error(`Model is loading. Please wait ${Math.ceil(errorData.estimated_time)} seconds and try again.`);
-        }
-      }
-      throw new Error(`Hugging Face API error: ${response.status} ${response.statusText} - ${errorText}`);
+      });
+    } catch (modelError) {
+      // Fallback to 2.0 flash if image model not available
+      console.warn("Image-specific model not available, trying flash-exp:", modelError);
+      model = client.getGenerativeModel({ 
+        model: "gemini-2.0-flash-exp",
+        generationConfig: {
+          temperature: 0.7,
+        },
+      });
     }
 
-    // Check content type to determine if it's an image or JSON error
-    const contentType = response.headers.get('content-type') || '';
+    // Request image generation with explicit instruction
+    const imagePrompt = `Generate a professional product photography image based on this description: ${prompt}`;
+
+    const result = await model.generateContent(imagePrompt);
+    const response = await result.response;
     
-    if (contentType.startsWith('image/')) {
-      // Hugging Face returns image as blob
-      const imageBlob = await response.blob();
-      
-      // Convert blob to base64 data URL for frontend use
-      const arrayBuffer = await imageBlob.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const base64 = buffer.toString('base64');
-      const mimeType = imageBlob.type || 'image/png';
-      
-      // Return as data URL
-      return `data:${mimeType};base64,${base64}`;
-    } else {
-      // Might be a JSON error response
-      const errorText = await response.text();
-      throw new Error(`Unexpected response from Hugging Face: ${errorText}`);
+    // Extract image from response
+    const candidates = response.candidates;
+    if (!candidates || candidates.length === 0) {
+      throw new Error("No image generated in response");
     }
+
+    const parts = candidates[0].content.parts;
+    for (const part of parts) {
+      // Check if this part contains image data
+      if (part.inlineData) {
+        const imageData = part.inlineData.data;
+        const mimeType = part.inlineData.mimeType || 'image/png';
+        
+        // Return as data URL
+        return `data:${mimeType};base64,${imageData}`;
+      }
+    }
+
+    // If no image found, the model might have returned text instead
+    // This can happen if the model doesn't support image generation
+    const textResponse = response.text();
+    throw new Error(`No image data found in Gemini response. Response was: ${textResponse.substring(0, 100)}`);
   } catch (error: any) {
-    console.error("Hugging Face Stable Diffusion image generation error:", error);
+    console.error("Gemini image generation error:", error);
     throw new Error(`Failed to generate image: ${error.message || "Unknown error"}`);
   }
 }
