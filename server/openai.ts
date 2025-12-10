@@ -150,14 +150,14 @@ export async function generateProductImage(params: {
   }
 
   // Enhanced style mapping with more detail
-  const styleMap: Record<string, string> = {
+    const styleMap: Record<string, string> = {
     "scandi": "Scandinavian minimal aesthetic with clean lines, neutral colors (beige, white, gray), natural light streaming through large windows, minimalist composition, modern furniture styling",
     "dark": "Dark luxury photography with moody lighting, rich textures (velvet, leather, wood), sophisticated ambiance, dramatic shadows, premium materials, editorial style",
     "natural": "Bright natural lighting, organic textures (wood grain, natural fibers, stone), warm earthy tones (browns, tans, greens), cozy atmosphere, sustainable materials visible",
-  };
-  
-  const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
-
+    };
+    
+    const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
+    
   try {
     // Use Gemini to create an optimized, detailed prompt for image generation
     // Gemini will intelligently handle all furniture types (chairs, gaming chairs, space furniture, etc.)
@@ -347,8 +347,57 @@ export async function generateVoiceAudio(params: {
       throw new Error("Script text is empty after cleaning. Please provide valid text to convert to speech.");
     }
 
-    // Get Murf AI voice ID
-    const voiceId = MURF_VOICES[voiceName.toLowerCase()] || MURF_VOICES["rachel"];
+    // First, try to fetch available voices to get the correct voice ID format
+    // Murf AI voice IDs need to be fetched from their API
+    let finalVoiceId: string | null = null;
+    
+    try {
+      const voicesResponse = await fetch('https://api.murf.ai/v1/speech/voices', {
+        method: 'GET',
+        headers: {
+          'api-key': apiKey.trim(),
+        },
+      });
+      
+      if (voicesResponse.ok) {
+        const voicesData = await voicesResponse.json();
+        // Try to find a matching voice by name
+        if (voicesData.voices && Array.isArray(voicesData.voices)) {
+          const matchingVoice = voicesData.voices.find((v: any) => 
+            v.name?.toLowerCase().includes(voiceName.toLowerCase()) ||
+            v.voiceId?.toLowerCase().includes(voiceName.toLowerCase())
+          );
+          if (matchingVoice?.voiceId) {
+            finalVoiceId = matchingVoice.voiceId;
+          } else {
+            // Fallback: use first available English voice
+            const englishVoice = voicesData.voices.find((v: any) => 
+              v.language?.toLowerCase().includes('en') || 
+              v.voiceId?.toLowerCase().includes('en')
+            );
+            if (englishVoice?.voiceId) {
+              finalVoiceId = englishVoice.voiceId;
+            }
+          }
+        }
+      }
+    } catch (voiceFetchError) {
+      console.warn("Could not fetch voices list, will try default approach:", voiceFetchError);
+    }
+
+    // If we couldn't fetch voices, use a common Murf AI voice ID format
+    if (!finalVoiceId) {
+      // Common Murf AI voice ID patterns - these are more likely to work
+      const fallbackVoices: Record<string, string> = {
+        "rachel": "en-US-Rachel-Neural",
+        "adam": "en-US-Adam-Neural",
+        "antoni": "en-US-Antoni-Neural",
+        "bella": "en-US-Bella-Neural",
+        "josh": "en-US-Josh-Neural",
+        "sam": "en-US-Sam-Neural",
+      };
+      finalVoiceId = fallbackVoices[voiceName.toLowerCase()] || fallbackVoices["rachel"];
+    }
 
     // Murf AI API endpoint for text-to-speech
     // Murf AI requires 'api-key' header (not Authorization Bearer)
@@ -360,8 +409,8 @@ export async function generateVoiceAudio(params: {
       },
       body: JSON.stringify({
         text: cleanScript,
-        voiceId: voiceId,
-        speed: speed,
+        voiceId: finalVoiceId,
+      speed: speed,
         format: 'mp3',
         sampleRate: 44100, // High quality audio
       }),
