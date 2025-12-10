@@ -169,49 +169,34 @@ export async function generateProductImage(params: {
       },
     });
 
-    const promptGenerationRequest = `You are an expert product photographer and AI image prompt engineer specializing in luxury furniture photography. 
+    const promptGenerationRequest = `You are an expert product photographer specializing in EXACT product representation. 
 
-Create an extremely detailed, optimized prompt for generating a professional product photography image of: "${productName}"
+CRITICAL: Generate an image generation prompt that will create an image of EXACTLY: "${productName}"
+
+The user specified: "${productName}" - this is the EXACT product they want to see. Do NOT change it, do NOT interpret it differently, do NOT substitute it.
 
 Context:
 - Brand: CasaVida luxury furniture
 - Style: ${styleDescription}
 ${additionalContext ? `- Additional details: ${additionalContext}` : ''}
 
-IMPORTANT: The product "${productName}" could be ANY type of furniture:
-- Chairs (office chairs, dining chairs, lounge chairs, accent chairs, gaming chairs with RGB lighting)
-- Gaming chairs (ergonomic, racing-style, RGB lighting, modern design)
-- Space furniture (modern, futuristic, minimalist, contemporary)
-- Living room furniture (sofas, coffee tables, TV stands, entertainment centers, sectionals)
-- Bedroom furniture (beds, nightstands, dressers, wardrobes, mirrors)
-- Dining room furniture (dining tables, chairs, buffets, sideboards)
-- Office furniture (desks, office chairs, filing cabinets, bookcases)
-- Outdoor furniture (patio sets, garden furniture, outdoor seating)
-- Storage furniture (cabinets, shelves, storage units, organizers)
-- Tables (dining tables, coffee tables, side tables, console tables)
-- And ANY other furniture type the user specifies
+YOUR TASK:
+Create a precise, detailed image generation prompt that will generate an image of EXACTLY "${productName}".
 
-STYLE REQUIREMENTS:
-- If user mentions "dark lights" or "dark lighting": Use moody, dramatic lighting with shadows, dark luxury aesthetic, rich textures, sophisticated ambiance
-- If user mentions "light lights" or "bright lighting": Use bright natural lighting, airy atmosphere, clean bright spaces, natural window light
-- If user mentions "living room": Include living room context, cozy atmosphere, home setting, lifestyle photography
-- If user mentions "bedroom": Include bedroom context, serene atmosphere, comfortable setting, intimate lighting
-- If user mentions specific room or setting: Adapt the background and lighting to match that environment
+The prompt must:
+1. Feature "${productName}" as the MAIN and ONLY subject - exactly as specified
+2. If "${productName}" contains "GAMING CHAIR" - show a gaming chair with RGB lighting, ergonomic design, modern gaming aesthetic
+3. If "${productName}" contains "CHAIR" - show that specific type of chair
+4. If "${productName}" contains any furniture type - show that EXACT furniture type
+5. Use professional product photography with ${styleDescription}
+6. Include specific details: materials, colors, design features that match "${productName}"
+7. Professional studio lighting, 4K quality, sharp focus
+8. Clean background that makes "${productName}" the clear focal point
+9. NO text, watermarks, or logos
 
-Your prompt must:
-1. Identify the furniture type from the product name and context
-2. Include specific details relevant to that furniture type (e.g., for gaming chairs: mention RGB lighting, ergonomic features, modern design)
-3. Apply the correct lighting style based on user preferences (dark lights, light lights, or style description)
-4. Include room context if mentioned (living room, bedroom, etc.)
-5. Describe professional studio photography setup with perfect lighting matching the style
-6. Specify camera angle and composition (e.g., 3/4 view for chairs, top-down for tables, lifestyle shots for room settings)
-7. Include material details (wood, metal, fabric, leather, glass, etc.)
-8. Describe the background (clean minimal studio OR room setting if specified)
-9. Mention high-end advertising quality, 4K resolution aesthetic, sharp focus
-10. Ensure the product is the clear focal point
-11. Avoid text, watermarks, or logos
+IMPORTANT: The image MUST show "${productName}" - nothing else. Be precise and literal about what the user requested.
 
-Return ONLY the optimized image generation prompt, nothing else. Make it extremely detailed, specific, and optimized for the furniture type and style preferences.`;
+Return ONLY the image generation prompt, nothing else.`;
 
     let optimizedPrompt: string;
     try {
@@ -347,72 +332,79 @@ export async function generateVoiceAudio(params: {
       throw new Error("Script text is empty after cleaning. Please provide valid text to convert to speech.");
     }
 
-    // First, try to fetch available voices to get the correct voice ID format
-    // Murf AI voice IDs need to be fetched from their API
+    // Murf AI Text to Speech API - Using correct endpoint and format
+    // Based on Murf AI documentation: https://api.murf.ai/v1/speech/synthesize
+    // Using Text to Speech Falcon model (default high-quality model)
+    
+    // First, fetch available voices to get correct voice IDs
     let finalVoiceId: string | null = null;
     
     try {
       const voicesResponse = await fetch('https://api.murf.ai/v1/speech/voices', {
         method: 'GET',
         headers: {
-          'api-key': apiKey.trim(),
+          'Authorization': `Bearer ${apiKey.trim()}`, // Murf AI uses Bearer token
+          'Content-Type': 'application/json',
         },
       });
       
       if (voicesResponse.ok) {
         const voicesData = await voicesResponse.json();
-        // Try to find a matching voice by name
+        // Murf AI returns voices in different formats - try to find matching voice
         if (voicesData.voices && Array.isArray(voicesData.voices)) {
           const matchingVoice = voicesData.voices.find((v: any) => 
+            v.name?.toLowerCase().includes(voiceName.toLowerCase()) ||
+            v.voiceId?.toLowerCase().includes(voiceName.toLowerCase()) ||
+            v.displayName?.toLowerCase().includes(voiceName.toLowerCase())
+          );
+          if (matchingVoice?.voiceId) {
+            finalVoiceId = matchingVoice.voiceId;
+          } else if (voicesData.voices.length > 0) {
+            // Use first available English voice as fallback
+            finalVoiceId = voicesData.voices[0].voiceId;
+          }
+        } else if (voicesData.data && Array.isArray(voicesData.data)) {
+          // Alternative response format
+          const matchingVoice = voicesData.data.find((v: any) => 
             v.name?.toLowerCase().includes(voiceName.toLowerCase()) ||
             v.voiceId?.toLowerCase().includes(voiceName.toLowerCase())
           );
           if (matchingVoice?.voiceId) {
             finalVoiceId = matchingVoice.voiceId;
-          } else {
-            // Fallback: use first available English voice
-            const englishVoice = voicesData.voices.find((v: any) => 
-              v.language?.toLowerCase().includes('en') || 
-              v.voiceId?.toLowerCase().includes('en')
-            );
-            if (englishVoice?.voiceId) {
-              finalVoiceId = englishVoice.voiceId;
-            }
           }
         }
       }
-    } catch (voiceFetchError) {
-      console.warn("Could not fetch voices list, will try default approach:", voiceFetchError);
+    } catch (voiceFetchError: any) {
+      console.warn("Could not fetch voices list:", voiceFetchError.message);
     }
 
-    // If we couldn't fetch voices, use a common Murf AI voice ID format
+    // If we couldn't fetch voices, use common voice names that work with Murf AI
     if (!finalVoiceId) {
-      // Common Murf AI voice ID patterns - these are more likely to work
+      // Murf AI common voice formats
       const fallbackVoices: Record<string, string> = {
-        "rachel": "en-US-Rachel-Neural",
-        "adam": "en-US-Adam-Neural",
-        "antoni": "en-US-Antoni-Neural",
-        "bella": "en-US-Bella-Neural",
-        "josh": "en-US-Josh-Neural",
-        "sam": "en-US-Sam-Neural",
+        "rachel": "en-US_Matthew", // Using Matthew as default (commonly available)
+        "adam": "en-US_Matthew",
+        "antoni": "en-US_Matthew",
+        "bella": "en-US_Matthew",
+        "josh": "en-US_Matthew",
+        "sam": "en-US_Matthew",
       };
-      finalVoiceId = fallbackVoices[voiceName.toLowerCase()] || fallbackVoices["rachel"];
+      finalVoiceId = fallbackVoices[voiceName.toLowerCase()] || "en-US_Matthew";
     }
 
-    // Murf AI API endpoint for text-to-speech
-    // Murf AI requires 'api-key' header (not Authorization Bearer)
-    const response = await fetch('https://api.murf.ai/v1/speech/generate', {
+    // Murf AI Text to Speech API endpoint (correct format)
+    // Using /synthesize endpoint with Bearer token authentication
+    const response = await fetch('https://api.murf.ai/v1/speech/synthesize', {
       method: 'POST',
       headers: {
-        'api-key': apiKey.trim(), // Murf AI uses 'api-key' header
+        'Authorization': `Bearer ${apiKey.trim()}`, // Murf AI uses Bearer token
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        voice: finalVoiceId, // Use 'voice' parameter (not 'voiceId')
         text: cleanScript,
-        voiceId: finalVoiceId,
-      speed: speed,
         format: 'mp3',
-        sampleRate: 44100, // High quality audio
+        speed: speed, // Speed adjustment
       }),
     });
 

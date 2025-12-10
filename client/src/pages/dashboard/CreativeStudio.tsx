@@ -22,7 +22,7 @@ export default function CreativeStudio() {
   const [voiceScript, setVoiceScript] = useState("");
   const [productName, setProductName] = useState("");
   const [targetSegment, setTargetSegment] = useState("");
-  const [platform, setPlatform] = useState("instagram");
+  const [platform, setPlatform] = useState("instagram"); // Only instagram and x
   const [tone, setTone] = useState("");
   const [visualStyle, setVisualStyle] = useState("");
   const [keyBenefit, setKeyBenefit] = useState("");
@@ -297,7 +297,7 @@ export default function CreativeStudio() {
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Platform</Label>
                     <div className="flex gap-2">
-                      {["instagram", "email", "tiktok"].map((p) => (
+                      {["instagram", "x"].map((p) => (
                         <Button 
                           key={p}
                           variant={platform === p ? "default" : "outline"} 
@@ -305,7 +305,7 @@ export default function CreativeStudio() {
                           className="flex-1 font-medium"
                           onClick={() => setPlatform(p)}
                         >
-                          {p === "instagram" ? "Insta" : p === "tiktok" ? "TikTok" : p}
+                          {p === "instagram" ? "Insta" : "X"}
                         </Button>
                       ))}
                     </div>
