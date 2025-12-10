@@ -243,15 +243,16 @@ Return ONLY the enhanced prompt, nothing else.`;
 
 // Removed getMockImageUrl - no mock images, always use API
 
-// Voice generation using free TTS service (Google Cloud TTS or free alternative)
-// Mapping of friendly voice names to TTS voice configurations
-const TTS_VOICES: Record<string, { lang: string; name: string; gender?: string }> = {
-  "rachel": { lang: "en-US", name: "en-US-Neural2-F", gender: "female" }, // Neutral, professional
-  "adam": { lang: "en-US", name: "en-US-Neural2-D", gender: "male" }, // Deep, authoritative
-  "antoni": { lang: "en-US", name: "en-US-Neural2-J", gender: "male" }, // Warm, friendly
-  "bella": { lang: "en-US", name: "en-US-Neural2-E", gender: "female" }, // Soft, gentle
-  "josh": { lang: "en-US", name: "en-US-Neural2-A", gender: "male" }, // Casual, conversational
-  "sam": { lang: "en-US", name: "en-US-Neural2-C", gender: "male" }, // Balanced, versatile
+// Voice generation using Murf AI
+// Mapping of friendly voice names to Murf AI voice IDs
+// Murf AI offers 120+ voices across 20+ languages
+const MURF_VOICES: Record<string, string> = {
+  "rachel": "en-US-Neural2-Female", // Neutral, professional (female)
+  "adam": "en-US-Neural2-Male", // Deep, authoritative (male)
+  "antoni": "en-US-Neural2-Male", // Warm, friendly (male) - can be customized
+  "bella": "en-US-Neural2-Female", // Soft, gentle (female)
+  "josh": "en-US-Neural2-Male", // Casual, conversational (male)
+  "sam": "en-US-Neural2-Male", // Balanced, versatile (male)
 };
 
 export async function generateVoiceAudio(params: {
@@ -259,11 +260,18 @@ export async function generateVoiceAudio(params: {
   voice?: string;
   speed?: number;
 }): Promise<Buffer> {
+  const apiKey = process.env.MURF_API_KEY;
   const { script, voice: voiceName = "rachel", speed = 1.0 } = params;
   
-  // Get voice configuration
-  const voiceConfig = TTS_VOICES[voiceName.toLowerCase()] || TTS_VOICES["rachel"];
-  
+  if (!apiKey) {
+    throw new Error("Murf AI API key not configured. Please set MURF_API_KEY environment variable in Railway.");
+  }
+
+  // Validate API key format
+  if (typeof apiKey !== 'string' || apiKey.trim().length === 0) {
+    throw new Error("Invalid Murf AI API key format. Please check your MURF_API_KEY environment variable.");
+  }
+
   try {
     // Clean the script text - remove stage directions and extra whitespace
     const cleanScript = script
@@ -275,81 +283,100 @@ export async function generateVoiceAudio(params: {
       throw new Error("Script text is empty after cleaning. Please provide valid text to convert to speech.");
     }
 
-    // Use Google Cloud Text-to-Speech API (free tier: 0-4 million characters/month)
-    // Falls back to free TTS service if Google TTS not available
-    const googleApiKey = process.env.GOOGLE_TTS_API_KEY || process.env.GEMINI_API_KEY;
-    
-    if (googleApiKey) {
-      try {
-        // Use Google Cloud Text-to-Speech API
-        const ttsUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleApiKey}`;
-        
-        const response = await fetch(ttsUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            input: { text: cleanScript },
-            voice: {
-              languageCode: voiceConfig.lang,
-              name: voiceConfig.name,
-              ssmlGender: voiceConfig.gender?.toUpperCase() || "NEUTRAL",
-            },
-            audioConfig: {
-              audioEncoding: "MP3",
-              speakingRate: speed,
-              pitch: 0,
-              volumeGainDb: 0,
-            },
-          }),
-        });
+    // Get Murf AI voice ID
+    const voiceId = MURF_VOICES[voiceName.toLowerCase()] || MURF_VOICES["rachel"];
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.audioContent) {
-            return Buffer.from(data.audioContent, 'base64');
-          }
+    // Murf AI API endpoint for text-to-speech
+    // Using the Synthesize Speech endpoint
+    const response = await fetch('https://api.murf.ai/v1/speech/generate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey.trim()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: cleanScript,
+        voiceId: voiceId,
+        speed: speed,
+        format: 'mp3',
+        sampleRate: 44100, // High quality audio
+      }),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Murf AI API error: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorData = await response.json();
+        
+        // Parse Murf AI error response
+        if (errorData.message) {
+          errorMessage = `Murf AI Error: ${errorData.message}`;
+        } else if (errorData.error) {
+          errorMessage = `Murf AI Error: ${errorData.error}`;
         } else {
-          const errorText = await response.text();
-          console.warn("Google TTS error:", errorText);
+          errorMessage = `Murf AI API Error: ${JSON.stringify(errorData)}`;
         }
-      } catch (googleError: any) {
-        console.warn("Google TTS failed, trying free alternative:", googleError.message);
+      } catch (parseError) {
+        // If JSON parsing fails, try to get text
+        const errorText = await response.text().catch(() => 'Unknown error');
+        errorMessage = `Murf AI API error: ${response.status} ${response.statusText} - ${errorText}`;
       }
+      
+      throw new Error(errorMessage);
     }
 
-    // Fallback: Use a completely free TTS service (no API key required)
-    // Using a free TTS API that works without authentication
-    try {
-      // Option: Use a free TTS service like ResponsiveVoice or similar
-      // For now, we'll use a simple HTTP-based TTS service
-      const freeTtsUrl = `https://api.voicerss.org/?key=free&hl=${voiceConfig.lang}&v=${voiceConfig.name}&src=${encodeURIComponent(cleanScript)}&f=48khz_16bit_mono&c=MP3&r=${Math.round(speed * 100)}`;
+    // Check if response is actually audio
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('audio') && !contentType.includes('mp3')) {
+      // Murf AI might return JSON with audio URL or base64
+      const data = await response.json();
       
-      const ttsResponse = await fetch(freeTtsUrl);
-      
-      if (ttsResponse.ok) {
-        const contentType = ttsResponse.headers.get('content-type') || '';
-        if (contentType.includes('audio') || contentType.includes('mp3')) {
-          const arrayBuffer = await ttsResponse.arrayBuffer();
+      if (data.audioUrl) {
+        // If Murf returns a URL, fetch the audio
+        const audioResponse = await fetch(data.audioUrl);
+        if (audioResponse.ok) {
+          const arrayBuffer = await audioResponse.arrayBuffer();
           if (arrayBuffer.byteLength > 0) {
             return Buffer.from(arrayBuffer);
           }
         }
+      } else if (data.audioContent || data.audio) {
+        // If Murf returns base64 audio
+        const audioData = data.audioContent || data.audio;
+        return Buffer.from(audioData, 'base64');
+      } else {
+        const errorText = JSON.stringify(data);
+        throw new Error(`Expected audio response but got: ${contentType}. Response: ${errorText.substring(0, 200)}`);
       }
-    } catch (freeTtsError) {
-      console.warn("Free TTS service failed:", freeTtsError);
     }
 
-    // Final fallback: Use browser TTS API simulation (server-side workaround)
-    // Generate a simple audio file or use another free service
-    throw new Error(
-      "Voice generation service unavailable. " +
-      "Please configure GOOGLE_TTS_API_KEY or GEMINI_API_KEY for Google Cloud TTS (free tier available). " +
-      "Alternatively, use a free TTS service API key."
-    );
+    const arrayBuffer = await response.arrayBuffer();
+    
+    if (arrayBuffer.byteLength === 0) {
+      throw new Error("Received empty audio response from Murf AI");
+    }
+    
+    return Buffer.from(arrayBuffer);
   } catch (error: any) {
-    console.error("Voice generation error:", error);
+    console.error("Murf AI voice generation error:", error);
+    
+    // Provide user-friendly error messages
+    if (error.message.includes("401") || error.message.includes("Unauthorized")) {
+      throw new Error(
+        "Murf AI authentication failed. Please check your MURF_API_KEY in Railway environment variables. " +
+        "Get your API key from https://murf.ai/api"
+      );
+    }
+    
+    if (error.message.includes("429") || error.message.includes("quota") || error.message.includes("limit")) {
+      throw new Error(
+        "Murf AI free tier limit reached (10 minutes/month). " +
+        "Please upgrade your Murf AI plan or wait for the next billing cycle. " +
+        "Visit https://murf.ai/pricing for more information."
+      );
+    }
+    
     throw new Error(`Failed to generate voice audio: ${error.message || "Unknown error"}`);
   }
 }

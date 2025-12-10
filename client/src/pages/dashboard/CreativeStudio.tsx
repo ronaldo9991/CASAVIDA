@@ -243,7 +243,7 @@ export default function CreativeStudio() {
             Creative Studio 
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-wider font-bold">Live</span>
           </h2>
-          <p className="text-muted-foreground">AI-powered campaign generation using Gemini for text and images, with free TTS for voice.</p>
+          <p className="text-muted-foreground">AI-powered campaign generation using Gemini for text and images, with Murf AI for voice.</p>
         </div>
       </div>
 
@@ -446,7 +446,7 @@ export default function CreativeStudio() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mic className="w-5 h-5 text-primary"/>
-                AI Voice Generator (Free TTS)
+                AI Voice Generator (Murf AI)
               </CardTitle>
               <CardDescription>Convert marketing copy into human-like audio for ads and social media.</CardDescription>
             </CardHeader>

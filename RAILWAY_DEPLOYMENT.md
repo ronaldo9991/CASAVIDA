@@ -5,8 +5,7 @@
 - GitHub repository with your code
 - API keys for:
   - Gemini API (for text generation)
-  - Hugging Face API (for image generation)
-  - Eleven Labs API (for voice generation)
+  - Murf AI API (for voice generation - free tier: 10 minutes/month)
 
 ## Step 1: Create a New Project on Railway
 
@@ -44,9 +43,14 @@ In your web service's "Variables" tab, add the following:
 ### Required API Keys:
 ```
 GEMINI_API_KEY=your-gemini-api-key-here
-HUGGINGFACE_API_KEY=your-huggingface-api-key-here
-ELEVEN_LABS_API_KEY=your-eleven-labs-api-key-here
+MURF_API_KEY=your-murf-ai-api-key-here
 ```
+
+**How to get Murf AI API Key:**
+1. Sign up at https://murf.ai (free account includes 10 minutes/month)
+2. Go to your dashboard → API section
+3. Generate an API key
+4. Copy the key and add it to Railway as `MURF_API_KEY`
 
 ### Optional (Railway sets these automatically):
 ```
@@ -115,8 +119,7 @@ If the build fails:
 |----------|----------|-------------|--------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string | Auto-set by Railway when database is linked |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key | https://ai.google.dev/ |
-| `HUGGINGFACE_API_KEY` | Yes | Hugging Face API key | https://huggingface.co/settings/tokens |
-| `ELEVEN_LABS_API_KEY` | Yes | Eleven Labs API key | https://elevenlabs.io/ |
+| `MURF_API_KEY` | Yes | Murf AI API key (free tier: 10 min/month) | https://murf.ai/api - Sign up and get API key from dashboard |
 | `PORT` | No | Server port (default: 5000) | Auto-set by Railway |
 | `NODE_ENV` | No | Environment (default: production) | Auto-set by Railway |
 

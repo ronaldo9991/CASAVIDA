@@ -124,6 +124,7 @@ export async function registerRoutes(
     res.json({ 
       configured: isOpenAIConfigured(),
       hasGemini: !!process.env.GEMINI_API_KEY,
+      hasMurfAI: !!process.env.MURF_API_KEY,
     });
   });
 
@@ -340,7 +341,7 @@ export async function registerRoutes(
       const parsed = generateVoiceRequestSchema.parse(req.body);
       const audioBuffer = await generateVoiceAudio(parsed);
       
-      // Eleven Labs returns MP3
+      // Murf AI returns MP3
       res.set({
         "Content-Type": "audio/mpeg",
         "Content-Disposition": `attachment; filename="casavida_voice_${Date.now()}.mp3"`,
@@ -353,7 +354,7 @@ export async function registerRoutes(
       } else {
         console.error("Voice generation error:", error);
         res.status(500).json({ 
-          error: error.message || "Failed to generate voice audio. Please ensure ELEVEN_LABS_API_KEY is configured." 
+          error: error.message || "Failed to generate voice audio. Please ensure MURF_API_KEY is configured in Railway." 
         });
       }
     }
