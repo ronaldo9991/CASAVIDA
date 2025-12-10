@@ -243,7 +243,7 @@ export default function CreativeStudio() {
             Creative Studio 
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-wider font-bold">Live</span>
           </h2>
-          <p className="text-muted-foreground">AI-powered campaign generation using Gemini (text & images) and Eleven Labs (voice).</p>
+          <p className="text-muted-foreground">AI-powered campaign generation using Gemini for text and images, with free TTS for voice.</p>
         </div>
       </div>
 
@@ -318,45 +318,6 @@ export default function CreativeStudio() {
                     )}
                     {(isGeneratingText || isGeneratingImage || isGeneratingVoice) ? "Generating..." : "Generate All"}
                   </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Creative Direction</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Tone</Label>
-                    <Select value={tone} onValueChange={setTone}>
-                      <SelectTrigger><SelectValue placeholder="Select tone" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="premium">Premium & Elegant</SelectItem>
-                        <SelectItem value="warm">Warm & Friendly</SelectItem>
-                        <SelectItem value="genz">Bold & GenZ</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Visual Style</Label>
-                    <Select value={visualStyle} onValueChange={setVisualStyle}>
-                      <SelectTrigger><SelectValue placeholder="Select style" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="scandi">Scandinavian Minimal</SelectItem>
-                        <SelectItem value="dark">Dark Luxury</SelectItem>
-                        <SelectItem value="natural">Natural Light</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Key Benefit</Label>
-                    <Textarea 
-                      placeholder="e.g. Handcrafted comfort..." 
-                      className="h-24 resize-none"
-                      value={keyBenefit}
-                      onChange={(e) => setKeyBenefit(e.target.value)}
-                    />
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -485,7 +446,7 @@ export default function CreativeStudio() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mic className="w-5 h-5 text-primary"/>
-                AI Voice Generator (Eleven Labs)
+                AI Voice Generator (Free TTS)
               </CardTitle>
               <CardDescription>Convert marketing copy into human-like audio for ads and social media.</CardDescription>
             </CardHeader>
