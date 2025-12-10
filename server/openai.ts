@@ -179,23 +179,39 @@ Context:
 ${additionalContext ? `- Additional details: ${additionalContext}` : ''}
 
 IMPORTANT: The product "${productName}" could be ANY type of furniture:
-- Chairs (office chairs, dining chairs, lounge chairs, accent chairs)
-- Gaming chairs (ergonomic, racing-style, RGB lighting)
-- Space furniture (modern, futuristic, minimalist)
-- Tables, sofas, desks, storage, outdoor furniture, etc.
+- Chairs (office chairs, dining chairs, lounge chairs, accent chairs, gaming chairs with RGB lighting)
+- Gaming chairs (ergonomic, racing-style, RGB lighting, modern design)
+- Space furniture (modern, futuristic, minimalist, contemporary)
+- Living room furniture (sofas, coffee tables, TV stands, entertainment centers, sectionals)
+- Bedroom furniture (beds, nightstands, dressers, wardrobes, mirrors)
+- Dining room furniture (dining tables, chairs, buffets, sideboards)
+- Office furniture (desks, office chairs, filing cabinets, bookcases)
+- Outdoor furniture (patio sets, garden furniture, outdoor seating)
+- Storage furniture (cabinets, shelves, storage units, organizers)
+- Tables (dining tables, coffee tables, side tables, console tables)
+- And ANY other furniture type the user specifies
+
+STYLE REQUIREMENTS:
+- If user mentions "dark lights" or "dark lighting": Use moody, dramatic lighting with shadows, dark luxury aesthetic, rich textures, sophisticated ambiance
+- If user mentions "light lights" or "bright lighting": Use bright natural lighting, airy atmosphere, clean bright spaces, natural window light
+- If user mentions "living room": Include living room context, cozy atmosphere, home setting, lifestyle photography
+- If user mentions "bedroom": Include bedroom context, serene atmosphere, comfortable setting, intimate lighting
+- If user mentions specific room or setting: Adapt the background and lighting to match that environment
 
 Your prompt must:
-1. Identify the furniture type from the product name
+1. Identify the furniture type from the product name and context
 2. Include specific details relevant to that furniture type (e.g., for gaming chairs: mention RGB lighting, ergonomic features, modern design)
-3. Describe professional studio photography setup with perfect lighting
-4. Specify camera angle and composition (e.g., 3/4 view for chairs, top-down for tables)
-5. Include material details (wood, metal, fabric, leather, etc.)
-6. Describe the background (clean, minimal, complements the product)
-7. Mention high-end advertising quality, 4K resolution aesthetic
-8. Ensure the product is the clear focal point
-9. Avoid text, watermarks, or logos
+3. Apply the correct lighting style based on user preferences (dark lights, light lights, or style description)
+4. Include room context if mentioned (living room, bedroom, etc.)
+5. Describe professional studio photography setup with perfect lighting matching the style
+6. Specify camera angle and composition (e.g., 3/4 view for chairs, top-down for tables, lifestyle shots for room settings)
+7. Include material details (wood, metal, fabric, leather, glass, etc.)
+8. Describe the background (clean minimal studio OR room setting if specified)
+9. Mention high-end advertising quality, 4K resolution aesthetic, sharp focus
+10. Ensure the product is the clear focal point
+11. Avoid text, watermarks, or logos
 
-Return ONLY the optimized image generation prompt, nothing else. Make it detailed, specific, and optimized for the furniture type.`;
+Return ONLY the optimized image generation prompt, nothing else. Make it extremely detailed, specific, and optimized for the furniture type and style preferences.`;
 
     let optimizedPrompt: string;
     try {
@@ -227,8 +243,7 @@ Return ONLY the optimized image generation prompt, nothing else. Make it detaile
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           'Accept': 'image/*',
         },
-        timeout: 30000, // 30 second timeout
-      } as any);
+      });
 
       if (ideogramResponse.ok) {
         const imageBlob = await ideogramResponse.blob();
@@ -335,11 +350,11 @@ export async function generateVoiceAudio(params: {
     const voiceId = MURF_VOICES[voiceName.toLowerCase()] || MURF_VOICES["rachel"];
 
     // Murf AI API endpoint for text-to-speech
-    // Using the Synthesize Speech endpoint
+    // Murf AI requires 'api-key' header (not Authorization Bearer)
     const response = await fetch('https://api.murf.ai/v1/speech/generate', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey.trim()}`,
+        'api-key': apiKey.trim(), // Murf AI uses 'api-key' header
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
