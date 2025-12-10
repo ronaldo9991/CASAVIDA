@@ -21,6 +21,7 @@ import BlueOcean from "@/pages/dashboard/BlueOcean";
 import Prioritization from "@/pages/dashboard/Prioritization";
 import ManagerSummary from "@/pages/dashboard/ManagerSummary";
 import StrategyResults from "@/pages/dashboard/StrategyResults";
+import Dataset from "@/pages/dashboard/Dataset";
 
 function Router() {
   return (
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/dashboard/prioritization" component={Prioritization} />
       <Route path="/dashboard/summary" component={ManagerSummary} />
       <Route path="/dashboard/results" component={StrategyResults} />
+      <Route path="/dashboard/dataset" component={Dataset} />
 
       {/* Fallback */}
       <Route component={NotFound} />

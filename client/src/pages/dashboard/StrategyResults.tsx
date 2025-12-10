@@ -21,6 +21,14 @@ import {
   Line,
   ComposedChart,
   Area,
+  AreaChart,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  PieChart,
+  Pie,
 } from "recharts";
 import { 
   ArrowUp, 
@@ -92,6 +100,33 @@ const INITIATIVE_RESULTS = [
   { name: "Premium Influencer Campaign", status: "paused", impact: "Saved $200K+", cost: "$0" },
   { name: "AI Style Consultant", status: "deferred", impact: "Reallocated budget", cost: "$0" },
   { name: "Showroom Expansion", status: "cancelled", impact: "Saved $850K", cost: "$0" },
+];
+
+const CLV_PROGRESSION = [
+  { month: "Month 0", functionalHomemakers: 680, homeEnhancers: 1850, occasional: 180 },
+  { month: "Month 1", functionalHomemakers: 695, homeEnhancers: 1860, occasional: 185 },
+  { month: "Month 2", functionalHomemakers: 720, homeEnhancers: 1875, occasional: 190 },
+  { month: "Month 3", functionalHomemakers: 755, homeEnhancers: 1890, occasional: 195 },
+  { month: "Month 4", functionalHomemakers: 785, homeEnhancers: 1905, occasional: 200 },
+  { month: "Month 5", functionalHomemakers: 805, homeEnhancers: 1915, occasional: 205 },
+  { month: "Month 6", functionalHomemakers: 820, homeEnhancers: 1920, occasional: 210 },
+];
+
+const COST_SAVINGS_DATA = [
+  { name: "Loyalty Program", value: 45000, type: "invested" },
+  { name: "Churn Model", value: 15000, type: "invested" },
+  { name: "Value Bundles", value: 12000, type: "invested" },
+  { name: "Influencer (Saved)", value: 200000, type: "saved" },
+  { name: "Showroom (Saved)", value: 850000, type: "saved" },
+];
+
+const RADAR_DATA = [
+  { metric: "Retention", before: 62, after: 85 },
+  { metric: "CLV", before: 40, after: 72 },
+  { metric: "Health Score", before: 28, after: 72 },
+  { metric: "Market Share", before: 32, after: 37 },
+  { metric: "Customer Sat", before: 45, after: 78 },
+  { metric: "NPS", before: 35, after: 65 },
 ];
 
 export default function StrategyResults() {
@@ -314,6 +349,98 @@ export default function StrategyResults() {
                   <Line type="monotone" dataKey="after" name="After Strategy" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} />
                   <Line type="monotone" dataKey="industry" name="Industry Avg" stroke="#6b7280" strokeWidth={1} strokeDasharray="5 5" dot={{ r: 3 }} />
                 </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>CLV Growth by Segment</CardTitle>
+              <CardDescription>Customer lifetime value progression over 6 months</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={CLV_PROGRESSION} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorFH" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))" }} formatter={(value: number) => [`$${value}`, '']} />
+                  <Legend />
+                  <Area type="monotone" dataKey="functionalHomemakers" name="Functional Homemakers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFH)" strokeWidth={2} />
+                  <Line type="monotone" dataKey="homeEnhancers" name="Home Enhancers" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="occasional" name="Occasional Browsers" stroke="#6b7280" strokeWidth={2} dot={{ r: 3 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Radar</CardTitle>
+              <CardDescription>Before vs After across all metrics (normalized to 100)</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={RADAR_DATA} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+                  <PolarGrid stroke="hsl(var(--muted))" />
+                  <PolarAngleAxis dataKey="metric" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                  <Radar name="Before" dataKey="before" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} strokeWidth={2} />
+                  <Radar name="After" dataKey="after" stroke="#22c55e" fill="#22c55e" fillOpacity={0.3} strokeWidth={2} />
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Retention Rate Improvement</CardTitle>
+              <CardDescription>Before vs After retention by segment</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={segmentComparisonData} layout="vertical" margin={{ left: 100, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                  <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} width={95} />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))" }} formatter={(value: number) => [`${value}%`, '']} />
+                  <Legend />
+                  <Bar dataKey="beforeRetention" name="Retention Before" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={15} />
+                  <Bar dataKey="afterRetention" name="Retention After" fill="#22c55e" radius={[0, 4, 4, 0]} barSize={15} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Investment vs Savings</CardTitle>
+              <CardDescription>Budget allocation and cost savings from strategy</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={COST_SAVINGS_DATA} margin={{ top: 20, right: 30, bottom: 60, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={9} tickLine={false} axisLine={false} angle={-25} textAnchor="end" height={60} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}K`} />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))" }} formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
+                  <Bar dataKey="value" name="Amount" radius={[4, 4, 0, 0]}>
+                    {COST_SAVINGS_DATA.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.type === 'saved' ? '#22c55e' : 'hsl(var(--primary))'} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
