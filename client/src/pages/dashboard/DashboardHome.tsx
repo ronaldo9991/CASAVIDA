@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -21,47 +23,62 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  ComposedChart,
+  Scatter,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, Users, DollarSign, Activity, ShoppingBag } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Users, DollarSign, Activity, ShoppingBag, Zap, Download } from "lucide-react";
+import { useState } from "react";
 
-// Mock Data
-const dataCLV = [
-  { name: "Jan", value: 400 },
-  { name: "Feb", value: 300 },
-  { name: "Mar", value: 550 },
-  { name: "Apr", value: 450 },
-  { name: "May", value: 600 },
-  { name: "Jun", value: 700 },
-];
+// Synthetically generated data for "Efficiency"
+const generateTrendData = () => {
+  return Array.from({ length: 12 }, (_, i) => ({
+    name: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][i],
+    revenue: Math.floor(Math.random() * 5000) + 2000,
+    clv: Math.floor(Math.random() * 1000) + 400,
+    churn: Math.floor(Math.random() * 50) + 10,
+  }));
+};
+
+const dataTrend = generateTrendData();
 
 const dataSegments = [
-  { name: "High Value", value: 400, color: "var(--chart-1)" },
-  { name: "Loyal", value: 300, color: "var(--chart-2)" },
-  { name: "At Risk", value: 300, color: "var(--chart-3)" },
-  { name: "New", value: 200, color: "var(--chart-4)" },
+  { name: "Luxury Minimalists", value: 450, color: "var(--chart-1)" },
+  { name: "Young Professionals", value: 380, color: "var(--chart-2)" },
+  { name: "Decor Enthusiasts", value: 290, color: "var(--chart-3)" },
+  { name: "Bargain Hunters", value: 150, color: "var(--chart-4)" },
+  { name: "Corporate Accounts", value: 90, color: "var(--chart-5)" },
 ];
 
-const dataRevenue = [
-  { name: "Living", revenue: 4000 },
-  { name: "Bedroom", revenue: 3000 },
-  { name: "Lighting", revenue: 2000 },
-  { name: "Decor", revenue: 2780 },
-  { name: "Outdoor", revenue: 1890 },
+const dataCampaigns = [
+  { name: "Autumn Solstice", roas: 4.2, spend: 12000, revenue: 50400 },
+  { name: "Dubai Launch", roas: 3.8, spend: 25000, revenue: 95000 },
+  { name: "Sustainable Living", roas: 5.1, spend: 8000, revenue: 40800 },
+  { name: "Influencer Collab", roas: 2.9, spend: 15000, revenue: 43500 },
 ];
 
 export default function DashboardHome() {
+  const [timeRange, setTimeRange] = useState("12m");
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Executive Overview</h2>
-          <p className="text-muted-foreground">
-            LivingMarket Intelligence Engine • Real-time Data
-          </p>
+      <div className="space-y-8 animate-in fade-in-50 duration-500">
+        {/* Header with Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Executive Command Center</h2>
+            <p className="text-muted-foreground">
+              LivingMarket Intelligence Engine • Real-time Data Sync
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+             <Button variant="outline" size="sm" onClick={() => setTimeRange("30d")} className={timeRange === "30d" ? "bg-muted" : ""}>30d</Button>
+             <Button variant="outline" size="sm" onClick={() => setTimeRange("90d")} className={timeRange === "90d" ? "bg-muted" : ""}>90d</Button>
+             <Button variant="outline" size="sm" onClick={() => setTimeRange("12m")} className={timeRange === "12m" ? "bg-muted" : ""}>12m</Button>
+             <Button size="sm" className="gap-2"><Download className="w-4 h-4"/> Export Report</Button>
+          </div>
         </div>
 
-        {/* KPI Cards */}
+        {/* High-Efficiency KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -70,6 +87,7 @@ export default function DashboardHome() {
               trend: "+12.5%",
               up: true,
               icon: DollarSign,
+              desc: "vs. previous period"
             },
             {
               title: "Active Customers",
@@ -77,14 +95,16 @@ export default function DashboardHome() {
               trend: "+4.1%",
               up: true,
               icon: Users,
+              desc: "1,204 new this month"
             },
             {
               title: "Churn Rate",
               value: "2.4%",
               trend: "-0.5%",
-              up: true, // actually good that it's down, but visual logic
+              up: true, 
               good: true,
               icon: Activity,
+              desc: "Below industry avg (3.1%)"
             },
             {
               title: "Avg Order Value",
@@ -92,107 +112,139 @@ export default function DashboardHome() {
               trend: "+1.2%",
               up: true,
               icon: ShoppingBag,
+              desc: "Driven by 'Living' category"
             },
           ].map((kpi, i) => (
-            <Card key={i} className="hover:shadow-md transition-shadow">
+            <Card key={i} className="hover:border-primary/50 transition-colors cursor-default">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {kpi.title}
                 </CardTitle>
-                <kpi.icon className="h-4 w-4 text-muted-foreground" />
+                <kpi.icon className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{kpi.value}</div>
-                <p className="text-xs text-muted-foreground flex items-center mt-1">
-                  {kpi.up ? (
-                    <ArrowUpRight className="w-3 h-3 text-emerald-500 mr-1" />
-                  ) : (
-                    <ArrowDownRight className="w-3 h-3 text-rose-500 mr-1" />
-                  )}
-                  <span
-                    className={
-                      kpi.good || kpi.up ? "text-emerald-500" : "text-rose-500"
-                    }
-                  >
-                    {kpi.trend}
-                  </span>
-                  <span className="ml-1">from last month</span>
-                </p>
+                <div className="text-2xl font-bold tracking-tight">{kpi.value}</div>
+                <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-muted-foreground">{kpi.desc}</p>
+                    <div className={`flex items-center text-xs font-medium ${kpi.good || kpi.up ? "text-emerald-500" : "text-rose-500"}`}>
+                        {kpi.up ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
+                        {kpi.trend}
+                    </div>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Main Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-          {/* Revenue Trend - Large */}
-          <Card className="col-span-1 lg:col-span-4">
+        {/* Complex Data Visualization Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Main Revenue Chart */}
+          <Card className="col-span-1 lg:col-span-8">
             <CardHeader>
-              <CardTitle>Revenue & CLV Trend</CardTitle>
-              <CardDescription>
-                Monthly growth performance across all channels.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                  <div>
+                      <CardTitle>Revenue vs. CLV Velocity</CardTitle>
+                      <CardDescription>
+                        Correlation analysis of monthly revenue against customer lifetime value growth.
+                      </CardDescription>
+                  </div>
+                  <Zap className="w-5 h-5 text-yellow-500" />
+              </div>
             </CardHeader>
-            <CardContent className="pl-2">
-              <div className="h-[300px]">
+            <CardContent className="pl-0">
+              <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dataCLV}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis
-                      dataKey="name"
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
+                  <ComposedChart data={dataTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                    <XAxis 
+                        dataKey="name" 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        dy={10}
                     />
-                    <YAxis
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(value) => `$${value}`}
+                    <YAxis 
+                        yAxisId="left"
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        tickFormatter={(value) => `$${value/1000}k`} 
+                        dx={-10}
+                    />
+                    <YAxis 
+                        yAxisId="right" 
+                        orientation="right" 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tickFormatter={(value) => `$${value}`} 
                     />
                     <Tooltip
                         contentStyle={{
                             backgroundColor: "hsl(var(--popover))",
                             borderColor: "hsl(var(--border))",
-                            color: "hsl(var(--popover-foreground))"
+                            color: "hsl(var(--popover-foreground))",
+                            borderRadius: "var(--radius)",
+                            boxShadow: "var(--shadow-md)"
                         }}
+                        itemStyle={{ padding: 0 }}
                     />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: "hsl(var(--primary))" }}
-                      activeDot={{ r: 6 }}
+                    <Legend />
+                    <Area 
+                        yAxisId="left"
+                        type="monotone" 
+                        dataKey="revenue" 
+                        name="Monthly Revenue"
+                        stroke="hsl(var(--primary))" 
+                        fillOpacity={1} 
+                        fill="url(#colorRevenue)" 
                     />
-                  </LineChart>
+                    <Line 
+                        yAxisId="right"
+                        type="monotone" 
+                        dataKey="clv" 
+                        name="Avg CLV"
+                        stroke="hsl(var(--chart-2))" 
+                        strokeWidth={2} 
+                        dot={{ r: 4, strokeWidth: 0, fill: "hsl(var(--chart-2))" }} 
+                    />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
-          {/* Segment Distribution - Medium */}
-          <Card className="col-span-1 lg:col-span-3">
+          {/* Segment Radar/Pie */}
+          <Card className="col-span-1 lg:col-span-4">
             <CardHeader>
-              <CardTitle>Customer Segments</CardTitle>
+              <CardTitle>Segment Distribution</CardTitle>
               <CardDescription>
-                Distribution by value cluster.
+                Active user base composition.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={dataSegments}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
+                      innerRadius={80}
+                      outerRadius={110}
+                      paddingAngle={2}
                       dataKey="value"
+                      stroke="none"
                     >
                       {dataSegments.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -205,7 +257,12 @@ export default function DashboardHome() {
                             color: "hsl(var(--popover-foreground))"
                         }}
                     />
-                    <Legend verticalAlign="bottom" height={36} />
+                    <Legend 
+                        layout="horizontal" 
+                        verticalAlign="bottom" 
+                        align="center"
+                        wrapperStyle={{ paddingTop: "20px" }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -213,20 +270,28 @@ export default function DashboardHome() {
           </Card>
         </div>
 
-        {/* Secondary Charts Area */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Campaign Performance Bar Chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Revenue by Category</CardTitle>
-                    <CardDescription>Top performing product lines this quarter.</CardDescription>
+                    <CardTitle>Campaign Performance (ROAS)</CardTitle>
+                    <CardDescription>Return on Ad Spend across active campaigns.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="h-[250px]">
+                    <div className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={dataRevenue} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
+                            <BarChart data={dataCampaigns} layout="vertical" margin={{ left: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted/30" />
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" width={80} tickLine={false} axisLine={false} fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                                <YAxis 
+                                    dataKey="name" 
+                                    type="category" 
+                                    width={100} 
+                                    tickLine={false} 
+                                    axisLine={false} 
+                                    fontSize={12} 
+                                    stroke="hsl(var(--muted-foreground))" 
+                                />
                                 <Tooltip 
                                     cursor={{fill: 'transparent'}}
                                     contentStyle={{
@@ -235,32 +300,44 @@ export default function DashboardHome() {
                                         color: "hsl(var(--popover-foreground))"
                                     }}
                                 />
-                                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={20} />
+                                <Bar dataKey="roas" name="ROAS" fill="hsl(var(--chart-4))" radius={[0, 4, 4, 0]} barSize={30}>
+                                    {dataCampaigns.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.roas > 4 ? "hsl(var(--chart-2))" : "hsl(var(--chart-4))"} />
+                                    ))}
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <Card className="flex flex-col">
                 <CardHeader>
-                    <CardTitle className="text-primary">AI Insights</CardTitle>
-                    <CardDescription>Automated daily digest.</CardDescription>
+                    <CardTitle>AI Recommendations</CardTitle>
+                    <CardDescription>Actionable intelligence engine outputs.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="p-3 bg-background/50 rounded-lg border border-border/50 backdrop-blur-sm">
-                        <p className="text-sm font-medium">🚀 Growth Opportunity</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            "Bedroom" category shows 15% WoW growth in the "Young Professionals" segment. Recommended action: Launch targeted email campaign.
+                <CardContent className="flex-1 flex flex-col gap-4">
+                    <div className="p-4 rounded-lg border border-l-4 border-l-emerald-500 bg-emerald-500/5 border-border">
+                        <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-semibold text-sm">Scale "Sustainable Living"</h4>
+                            <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300">High Confidence</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            ROAS is at 5.1x. Increasing budget by 20% is projected to yield an additional $15k revenue without efficiency loss.
                         </p>
                     </div>
-                    <div className="p-3 bg-background/50 rounded-lg border border-border/50 backdrop-blur-sm">
-                        <p className="text-sm font-medium text-rose-500">⚠️ Churn Risk</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            120 high-value customers haven't purchased in 90 days. Predicted churn probability: 65%.
+                    
+                    <div className="p-4 rounded-lg border border-l-4 border-l-amber-500 bg-amber-500/5 border-border">
+                        <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-semibold text-sm">Segment Alert: Corporate</h4>
+                            <span className="text-[10px] uppercase font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full dark:bg-amber-900 dark:text-amber-300">Medium Risk</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Engagement dropped 12% this month. Consider sending a specialized B2B catalog update.
                         </p>
                     </div>
-                    <Button className="w-full mt-2" size="sm">Generate Full Manager Summary</Button>
+
+                     <Button className="w-full mt-auto" variant="secondary">View All Insights</Button>
                 </CardContent>
             </Card>
         </div>
