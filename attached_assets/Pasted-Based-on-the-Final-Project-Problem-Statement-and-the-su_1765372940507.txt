@@ -1,0 +1,36 @@
+Based on the "Final Project Problem Statement" and the supporting reading materials you uploaded, you are tasked with acting as a consulting squad member for a retail brand called "CasaVida."
+Your unique background in AI and Marketing is perfect for this project because the core challenge is designing a coherent system where AI models (Clustering, CLV, Churn) solve strategic marketing problems (Segmentation, Growth, Value).
+Here is your step-by-step action plan to execute this project, mapping your tasks to the specific documents provided.
+1. Understand the Client & The Crisis
+Client: CasaVida (Home & Living Retailer)1.
+The Issue: They are expanding into a new market targeting "home enhancers" (design-conscious) while neglecting their core "functional homemakers" (value-conscious)2222.
+The Symptoms: Stagnant sales in the new market, churn in the old market, and internal initiative overload3.
+2. Execution Plan: Four Stages
+Stage 1: Frame the Strategy (The "Business" Side)
+Before building models, you must define who the AI is targeting and why.
+• Define the Segments: Clearly distinguish between the "Functional Homemaker" and the "Home Enhancer"4.
+• Apply "Are You Ready to Change Your Target Customer?": Use the Bunnings/Homebase case study in this PDF to explain the strategic risk. CasaVida is making the exact same mistake Bunnings did—alienating the core to chase a premium segment they don't understand5555. Use this text to justify why your AI solution must monitor both segments, not just the new one.
+• Select Growth Levers: Use the "6 Ways to Grow" PDF. You need to explicitly state which levers CasaVida is pulling. Are they chasing "New Customers" (revolutionary/high risk) or "New Experiences" (evolutionary)?666666666. This defines the KPIs your AI will optimize.
+Stage 2: Design the AI System (The "AI Engineer" Side)
+This is where your technical background shines. You need to design the system architecture (not necessarily code it, but storyboard the logic).
+• Segmentation Engine: Propose a clustering model (e.g., K-Means) using behavioral data (transaction history) and attitudinal data (surveys/reviews)7. Use the Markstrat Handbook to identify realistic input variables (e.g., "Shopping Habits," "Perceptual Objectives," or "ideal values")8888.
+• CLV & Value Logic: Design a predictive model for Customer Lifetime Value. Reference the Customer Value PDF to ensure your definition of "value" isn't just revenue, but includes "benefits vs. sacrifices" and ethical considerations (trust/fairness)9999.
+• Churn Prediction: Design a propensity model to flag "Functional Homemakers" at risk of leaving. Define the triggers (e.g., if churn probability > 70%, trigger a retention offer)10.
+• GenAI Application: Propose a specific use case for Generative AI, such as an "AI Style Consultant" for the "Home Enhancers" segment11.
+Stage 3: Prioritization (The "Manager" Side)
+CasaVida is drowning in projects. You need to act as the gatekeeper.
+• Apply "Too Many Projects": Use this PDF to explain why overload is hurting them (impact blindness, multiplier effects)12121212.
+• The Framework: Create a scoring matrix (e.g., Impact on CLV vs. Implementation Effort).
+• The Hard Choice: explicitly list initiatives you will kill or pause (e.g., pause the influencer campaign to focus on the churn model)13.
+Stage 4: The Prototype
+Create a low-fidelity prototype or storyboard of a dashboard/tool that a CasaVida marketing manager would use.
+• Visuals: Show a dashboard tracking the "Functional Homemaker" health score vs. the "Home Enhancer" acquisition cost.
+• Inputs/Outputs: Show clearly what data goes in (e.g., social listening from the BOSS handbook context) and what recommendation comes out (e.g., "Launch Retention Campaign B")14141414.
+3. Cheat Sheet: Document Usage
+• Final Project Problem Statement: Your roadmap. Follow the 4-stage structure exactly15151515151515151515151515151515.
+• Markstrat / BOSS Handbooks: Use these as "data dictionaries." When you describe your AI inputs, use terms from these books like "Share of Voice," "Perceptual Maps," or "Commercial Team Allocation" to make it realistic161616161616161616.
+• Customer Value: Use this to ensure your AI optimizes for relationship trust, not just immediate transactions17.
+• Target Customer / 6 Ways to Grow: Use these to diagnose the strategic error CasaVida is making and frame the solution18.
+Immediate Next Step
+I can help you brainstorm the specific AI Architecture for Stage 2. Would you like me to outline the Input Features (X) and Target Variables (Y) for the CasaVida Churn and CLV models based on the Markstrat data fields?
+ 

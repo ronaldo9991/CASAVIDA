@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, real, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, real, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -26,6 +26,11 @@ export const customerSegments = pgTable("customer_segments", {
   growthRate: real("growth_rate").notNull().default(0),
   description: text("description"),
   color: text("color").default("#8B5CF6"),
+  healthScore: integer("health_score").default(50),
+  clvTrend: real("clv_trend").default(0),
+  isCore: boolean("is_core").default(false),
+  acquisitionCost: real("acquisition_cost").default(0),
+  retentionRate: real("retention_rate").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -46,6 +51,7 @@ export const competitors = pgTable("competitors", {
   adSpend: real("ad_spend").notNull().default(0),
   strengths: text("strengths").array(),
   weaknesses: text("weaknesses").array(),
+  threat: text("threat").default("medium"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -56,6 +62,27 @@ export const insertCompetitorSchema = createInsertSchema(competitors).omit({
 
 export type InsertCompetitor = z.infer<typeof insertCompetitorSchema>;
 export type Competitor = typeof competitors.$inferSelect;
+
+export const businessInitiatives = pgTable("business_initiatives", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  impact: integer("impact").notNull().default(0),
+  effort: integer("effort").notNull().default(0),
+  status: text("status").notNull().default("active"),
+  priority: text("priority").default("medium"),
+  description: text("description"),
+  recommendation: text("recommendation"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertInitiativeSchema = createInsertSchema(businessInitiatives).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertInitiative = z.infer<typeof insertInitiativeSchema>;
+export type Initiative = typeof businessInitiatives.$inferSelect;
 
 export const generatedCampaigns = pgTable("generated_campaigns", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
