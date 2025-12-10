@@ -52,12 +52,16 @@ async function buildAll() {
     bundle: true,
     format: "cjs",
     outfile: "dist/index.cjs",
+    target: "node18",
     define: {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
     external: externals,
     logLevel: "info",
+    sourcemap: false,
+    legalComments: "none",
+    treeShaking: true,
   });
 }
 
