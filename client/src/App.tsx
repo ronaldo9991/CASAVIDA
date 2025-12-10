@@ -22,6 +22,7 @@ import Prioritization from "@/pages/dashboard/Prioritization";
 import ManagerSummary from "@/pages/dashboard/ManagerSummary";
 import StrategyResults from "@/pages/dashboard/StrategyResults";
 import Dataset from "@/pages/dashboard/Dataset";
+import Reports from "@/pages/dashboard/Reports";
 
 function Router() {
   return (
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/dashboard/summary" component={ManagerSummary} />
       <Route path="/dashboard/results" component={StrategyResults} />
       <Route path="/dashboard/dataset" component={Dataset} />
+      <Route path="/dashboard/reports" component={Reports} />
 
       {/* Fallback */}
       <Route component={NotFound} />

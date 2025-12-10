@@ -17,7 +17,8 @@ import {
   Menu,
   X,
   Sparkles,
-  Database
+  Database,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { label: "Blue Ocean", icon: Compass, href: "/dashboard/blue-ocean" },
   { label: "Prioritization", icon: ListTodo, href: "/dashboard/prioritization" },
   { label: "6-Month Results", icon: Sparkles, href: "/dashboard/results" },
+  { label: "Crisis Report", icon: ClipboardList, href: "/dashboard/reports" },
   { label: "Dataset Explorer", icon: Database, href: "/dashboard/dataset" },
   { label: "Manager Summary", icon: FileText, href: "/dashboard/summary" },
   { label: "Creative Studio", icon: Palette, href: "/dashboard/creative" },
