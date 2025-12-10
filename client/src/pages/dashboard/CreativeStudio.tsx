@@ -56,6 +56,25 @@ export default function CreativeStudio() {
     }, 3000);
   };
 
+  const handleDownloadAudio = () => {
+    // Simulate download by creating a dummy blob
+    const dummyContent = "This is a placeholder for the AI generated audio content.";
+    const blob = new Blob([dummyContent], { type: 'audio/mpeg' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `casavida_campaign_voice_${new Date().getTime()}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+        title: "Download Started",
+        description: "Your AI voice generation is downloading.",
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -232,6 +251,32 @@ export default function CreativeStudio() {
                                                 Available now in our Dubai showroom. Link in bio.
                                             </p>
                                         </div>
+
+                                        <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 animate-in fade-in slide-in-from-bottom-4 delay-200">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-primary">AI Voice Script (30s)</span>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                                                    onClick={() => setIsPlaying(!isPlaying)}
+                                                >
+                                                    {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                                                </Button>
+                                            </div>
+                                            <div className="h-8 bg-background rounded-md mb-3 flex items-center px-2 gap-1 overflow-hidden">
+                                                 {Array.from({length: 30}).map((_, i) => (
+                                                     <div key={i} className={`w-1 rounded-full bg-primary/40 ${isPlaying ? 'animate-pulse' : ''}`} style={{height: `${Math.random() * 100}%`}}></div>
+                                                 ))}
+                                            </div>
+                                            <p className="text-xs italic text-muted-foreground">
+                                                (Soft, warm ambient music) <br/>
+                                                Narrator: "Close your eyes. Imagine a space that feels like a deep breath. The {productName || "Kyoto Collection"} is here to bring calm back to your home..."
+                                            </p>
+                                            <div className="mt-2 flex justify-end">
+                                                 <Button variant="link" size="sm" className="h-auto p-0 text-xs gap-1" onClick={handleDownloadAudio}><Download className="w-3 h-3"/> Download MP3</Button>
+                                            </div>
+                                        </div>
                                     </>
                                 ) : (
                                     <div className="h-full flex items-center justify-center text-muted-foreground flex-col gap-2 opacity-50">
@@ -352,7 +397,7 @@ export default function CreativeStudio() {
                                             <Button size="icon" variant="outline" className="h-12 w-12 rounded-full" onClick={() => setIsPlaying(!isPlaying)}>
                                                 {isPlaying ? <Pause className="w-5 h-5"/> : <Play className="w-5 h-5 ml-1"/>}
                                             </Button>
-                                            <Button size="icon" variant="outline" className="h-12 w-12 rounded-full">
+                                            <Button size="icon" variant="outline" className="h-12 w-12 rounded-full" onClick={handleDownloadAudio}>
                                                 <Download className="w-5 h-5"/>
                                             </Button>
                                        </div>
