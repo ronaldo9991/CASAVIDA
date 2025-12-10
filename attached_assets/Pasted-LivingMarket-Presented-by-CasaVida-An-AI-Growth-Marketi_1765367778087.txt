@@ -1,0 +1,463 @@
+LivingMarket — Presented by CasaVida
+
+— An AI Growth & Marketing Intelligence Engine for Retail.
+
+The app must use:
+
+Frontend: React + Tailwind + React Router + Plotly/Recharts
+Backend: Node.js + Express
+AI: OpenAI GPT-4.1, o1-mini, DALL·E 3, TTS
+Theme: Full dark/light mode (tailwind class strategy)
+UI: Premium, minimal, aesthetic — lifestyle brand feel
+Brand Personality: Warm, premium, elegant, home décor style
+
+🏠 1. HOME PAGE — Extremely Detailed Dashboard
+
+Route: /
+
+The Home Page should act as the central command center for CasaVida leadership.
+
+Top Section (Hero + KPIs)
+
+Title: “LivingMarket — Presented by CasaVida”
+
+Subtitle: “AI Growth, Segmentation, and Creative Intelligence Engine”
+
+KPI Cards:
+
+Total Customers
+
+CLV (avg)
+
+Churn Rate
+
+Active Segments
+
+Sales Trend
+
+Campaign Success Index
+
+Middle Section — Important Graphs
+
+Three major chart groups:
+
+A. Customer & Revenue Analytics
+
+CLV Trend Line
+
+Revenue by Segment Bar Chart
+
+RFM Heatmap
+
+Customer Value Pyramid
+
+B. Segmentation Insights
+
+Segment Distribution Pie
+
+Cluster Scatter Plot (PCA)
+
+Engagement Radar per segment
+
+Churn vs CLV Quadrant
+
+C. Competitive + Blue Ocean Snapshot
+
+Brand Positioning Map (2D: Style vs Price)
+
+Competitor Sentiment Trend
+
+Share of Voice Doughnut Chart
+
+Mini Blue-Ocean Radar Preview (click expands to full module)
+
+Bottom Area — Quick Actions (Cards)
+
+Cards that link to feature modules:
+
+Creative Studio (Text + Image + Voice)
+
+Customer Segments & CLV
+
+Churn & Retention
+
+Competitive Intelligence
+
+Blue Ocean Strategy Mapping
+
+Project Prioritization Engine
+
+Manager Summary Generator
+
+🎨 2. CREATIVE STUDIO — TEXT + IMAGE + VOICE (ALL-IN-ONE)
+
+Route: /creative-studio
+
+This is CasaVida’s core content creation engine.
+
+Page Layout (3 Zones):
+ZONE 1 — Input Panel (Top, Shared Inputs)
+
+Inputs:
+
+Product name
+
+Product description
+
+Target Segment
+
+Platform (Instagram / TikTok / Email / Website)
+
+Tone (Premium / Warm / Minimal / GenZ / Elegant)
+
+Objective (Awareness / Engagement / Conversion / Retention)
+
+Image Style (Modern / Cozy / Premium / Scandinavian / Lifestyle)
+
+Voice Style (Luxury Narrator / Warm Friendly / GenZ Energetic / Calm Storyteller)
+
+Button:
+
+“Generate Full Campaign (Text + Images + Voice)”
+ZONE 2 — AI TEXT OUTPUT (Left Column)
+
+Output should include:
+
+3–5 campaign text variations
+
+Headlines
+
+Hooks
+
+Body copy
+
+CTA suggestions
+
+Hashtags
+
+Ethical considerations
+
+Value creation breakdown (Benefits vs Sacrifices)
+
+Marketing psychology notes
+
+Graph Insights:
+
+Tone Strength Gauge
+
+CTA Effectiveness Score
+
+Semantic Density Meter
+
+ZONE 3 — AI IMAGE OUTPUT (Right Column)
+
+Using DALL·E 3:
+
+2–4 marketing-ready visuals
+
+Download buttons
+
+Auto captions
+
+Suggested placements (e.g., Carousel, Reels thumbnail)
+
+Graph:
+
+Visual Style Match Gauge (score alignment to chosen style)
+
+VOICE OUTPUT (Below or Modal)
+
+Using OpenAI TTS (Option B):
+
+Generate MP3 narration of campaign script
+
+Audio player
+
+Download audio
+
+🧬 3. SEGMENTATION ENGINE (CSV Upload + RFM + Clusters)
+
+Route: /segments
+
+Capabilities:
+
+Upload CSV: customer_id, recency, frequency, monetary, etc.
+
+Compute RFM
+
+Normalize inputs
+
+KMeans cluster into 2–4 segments
+
+Auto-label segments
+
+Graphs:
+
+Segment Distribution Pie Chart
+
+RFM Heatmap
+
+Cluster Scatter Plot (PCA)
+
+CLV per Segment Bar Chart
+
+Churn vs CLV Quadrant
+
+Segment Engagement Radar
+
+AI Summary:
+
+Backend /api/segments/summary generates:
+
+High-value customers
+
+At-risk segments
+
+Migration risk from wrong target customer changes
+
+Growth opportunities
+
+Ethical considerations
+
+💰 4. CLV MODULE
+
+Route: /clv
+
+Graphs:
+
+CLV Trend Line
+
+Cohort CLV Heatmap
+
+Customer Value Pyramid
+
+Revenue by Segment Chart
+
+Purchase Frequency Histogram
+
+Recency Curve
+
+AI Insight Panel for:
+
+CLV drivers
+
+Predictions
+
+Recommendations
+
+⚠️ 5. CHURN MODULE
+
+Route: /churn
+
+Compute churn probability using:
+
+RFM
+
+Repeat rate
+
+Visit gaps
+
+Drop in engagement
+
+Graphs:
+
+Churn Probability Histogram
+
+Churn Drivers Importance Bar Graph
+
+At-Risk Customers Over Time Line
+
+Retention Impact Projection Graph
+
+AI recommendations:
+
+Personalized retention actions
+
+Early intervention strategies
+
+🆚 6. COMPETITIVE INTELLIGENCE
+
+Route: /ci
+
+User inputs:
+
+Competitor names
+
+Category
+
+Keywords
+
+AI generates:
+
+Competitive messaging
+
+Threats
+
+Opportunities
+
+Price/Value insights
+
+Graphs:
+
+Price vs Value Scatter Plot
+
+Competitor Sentiment Trend
+
+Share of Voice Doughnut
+
+2D Brand Positioning Map
+
+🌊 7. BLUE OCEAN STRATEGY
+
+Route: /blue-ocean
+
+Graphs:
+
+Full Strategic Canvas Radar
+
+Value Curve Comparison Line
+
+Opportunity Gap Graph
+
+AI outputs:
+
+Insights on uncontested space
+
+Differentiation strategy
+
+Growth path recommendations
+
+📌 8. PRIORITIZATION ENGINE (Too Many Projects Solution)
+
+Route: /prioritization
+
+For each project:
+
+AI computes scores for:
+
+Impact
+
+Feasibility
+
+Cost
+
+Data readiness
+
+Ethical risk
+
+Alignment with 6 ways to grow
+
+Graphs:
+
+Impact vs Effort Quadrant
+
+Score Breakdown Bar Chart
+
+Risk vs Opportunity Scatter Plot
+
+Outputs:
+
+Top 3 must-execute projects
+
+Medium priorities
+
+Projects to pause
+
+Strategy notes
+
+🧑‍💼 9. MANAGER SUMMARY GENERATOR
+
+Route: /summary
+
+Outputs a C-suite level report:
+
+Problem
+
+Insights
+
+Key segments
+
+CLV + churn summary
+
+Competitive threats
+
+Blue Ocean summary
+
+Recommended actions
+
+KPIs
+
+Export:
+
+PDF
+
+Slide-like layout
+
+🌗 10. DARK / LIGHT MODE
+
+Tailwind "class" mode
+
+ThemeContext.jsx
+
+Toggle saved in localStorage
+
+All charts adjust themes automatically
+
+Dark mode:
+
+Background: #0f0f0f
+
+Cards: #181818
+
+Borders: #252525
+
+Soft white text
+
+Light mode:
+
+Clean white with soft shadow cards
+
+📁 FILE STRUCTURE
+
+(Same as previous, with CreativeStudio replacing Voice)
+
+/livingmarket
+  /client
+    /src
+      /pages
+        Dashboard.jsx
+        CreativeStudio.jsx
+        Segments.jsx
+        CLVDashboard.jsx
+        Churn.jsx
+        CompetitorIntel.jsx
+        BlueOcean.jsx
+        Prioritization.jsx
+        ManagerSummary.jsx
+      /components
+        Chart components
+        Upload components
+        Card components
+      /context/ThemeContext.jsx
+      /utils/api.js
+      App.jsx
+      main.jsx
+    tailwind.config.js
+
+  /server
+    /routes
+      creative.js
+      segments.js
+      clv.js
+      churn.js
+      ci.js
+      blueocean.js
+      prioritization.js
+      summary.js
+    /controllers
+    index.js
+
+  .env.example
+  README.md
+
+✅ END OF FINAL MASTER PROMPT

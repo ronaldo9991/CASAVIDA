@@ -1,0 +1,205 @@
+PUBLIC HOMEPAGE — CasaVida Global (NO dashboard mentions)
+
+Route: /
+This homepage must feel like a luxury lifestyle brand website similar to:
+
+Apple
+
+Zara Home
+
+Pottery Barn
+
+West Elm
+
+Crate & Barrel
+
+It should make people FALL IN LOVE with CasaVida.
+
+🎨 1. Hero Section — “CasaVida: Crafted for Modern Living”
+
+Full-screen cinematic banner with premium interior photography.
+
+Headline:
+
+CasaVida — Modern Living, Elevated.
+
+Sub-headline:
+
+“Born in India. Refined in Dubai. Curated for global homes.”
+
+Buttons:
+
+Explore CasaVida
+
+Contact Us
+
+Sign In (top right corner only for companies)
+
+No AI words. No dashboard mention.
+This is a pure brand experience.
+
+🏡 2. The CasaVida Story (India → Dubai Expansion)
+
+Large Apple-style storytelling section.
+
+Title:
+
+Redefining Home & Living for a New Generation.
+
+Copy:
+
+CasaVida began in India with a simple promise —
+to bring beautiful, meaningful design into everyday living.
+With a legacy of craftsmanship and modern aesthetics, CasaVida has now expanded to Dubai to serve the premium and luxury segment.
+
+Three cinematic cards:
+
+Indian Craftsmanship – showcasing artisans
+
+Dubai Elegance – premium apartments & villas
+
+Global Inspiration – modern design across the world
+
+🪑 3. Collections Showcase (Apple Card Grid)
+
+Large photos of CasaVida’s product categories:
+
+Living Room
+
+Bedroom
+
+Lighting
+
+Art & Decor
+
+Outdoor
+
+Lifestyle Accessories
+
+Each card with:
+
+Soft hover animations
+
+Minimal text
+
+Gorgeous imagery
+
+🌿 4. “Designed For Your Life” Section
+
+A slow-parallax section with lifestyle imagery.
+
+Text:
+
+CasaVida blends modern design, sustainability, and comfort to create spaces that tell a story — your story.
+
+3 Apple-style promos:
+
+Sustainable materials
+
+Designed in India, styled in Dubai
+
+Minimal, functional and warm aesthetics
+
+🇮🇳🇦🇪 5. “Two Cultures. One Vision.”
+
+Photos of Indian artisans + Dubai skyline blended tastefully.
+
+Small text:
+
+Where heritage meets modern luxury.
+
+🖼 6. Premium Lookbook Section
+
+Carousel or grid of interior photographs edited in a cinematic warm-tone palette.
+
+No explanation — pure visual emotion.
+
+❤️ 7. Testimonials Section
+
+3–5 premium testimonials from customers (can be placeholders):
+
+Indian customers
+
+Dubai customers
+
+Influencers
+
+Minimal, elegant, human.
+
+🛒 8. Call-to-Action
+Headline:
+
+Discover How CasaVida Makes Your Home Feel Alive.
+
+Buttons:
+
+Explore Products
+
+Visit Dubai Showroom
+
+Contact Brand Team
+
+🔐 9. Sign In (Only for Companies & Partners)
+
+This is ONLY in:
+
+Navbar
+
+Footer
+
+Not advertised.
+
+Mini text (subtle):
+
+“Are you a CasaVida partner, team member or retailer? → Sign in to access the LivingMarket system.”
+
+(Here is where the AI dashboard lives, but not mentioned publicly.)
+
+⚙️ 10. Footer
+
+Minimal, premium, monochrome.
+
+Links:
+
+About CasaVida
+
+Collections
+
+Stores
+
+Contact
+
+Careers
+
+Privacy
+
+Partner Sign-In (links to /login)
+
+💡 IMPORTANT:
+
+The public homepage does not even hint that CasaVida has an AI platform.
+This keeps the brand aesthetic pure and consumer-focused.
+
+🔐 PRIVATE AREA (After Login)
+
+Route: /login → /dashboard
+
+The dashboard contains ALL AI features:
+
+Creative Studio (Text + Image + Voice)
+
+Segmentation
+
+CLV
+
+Churn
+
+Competitive Intelligence
+
+Blue Ocean Strategy
+
+Prioritization
+
+Manager Summary
+
+This is strictly internal.
