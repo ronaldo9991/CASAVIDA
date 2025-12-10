@@ -155,9 +155,12 @@ export async function registerRoutes(
   // ============ SEGMENTS API (Read-only + Download) ============
   app.get("/api/segments", async (_req: Request, res: Response) => {
     try {
+      // Ensure database is initialized
+      await initializeDatabase();
       const segments = await storage.getSegments();
       res.json(segments);
     } catch (error: any) {
+      console.error("Segments API error:", error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -165,9 +168,12 @@ export async function registerRoutes(
   // ============ COMPETITORS API (Read-only + Download) ============
   app.get("/api/competitors", async (_req: Request, res: Response) => {
     try {
+      // Ensure database is initialized
+      await initializeDatabase();
       const competitors = await storage.getCompetitors();
       res.json(competitors);
     } catch (error: any) {
+      console.error("Competitors API error:", error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -175,9 +181,12 @@ export async function registerRoutes(
   // ============ INITIATIVES API ============
   app.get("/api/initiatives", async (_req: Request, res: Response) => {
     try {
+      // Ensure database is initialized
+      await initializeDatabase();
       const initiatives = await storage.getInitiatives();
       res.json(initiatives);
     } catch (error: any) {
+      console.error("Initiatives API error:", error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -185,6 +194,8 @@ export async function registerRoutes(
   // ============ DASHBOARD SUMMARY API ============
   app.get("/api/dashboard/summary", async (_req: Request, res: Response) => {
     try {
+      // Ensure database is initialized
+      await initializeDatabase();
       const segments = await storage.getSegments();
       const competitors = await storage.getCompetitors();
       const initiatives = await storage.getInitiatives();
@@ -284,6 +295,8 @@ export async function registerRoutes(
   // ============ CREATIVE STUDIO API (OpenAI) ============
   app.post("/api/creative/text", async (req: Request, res: Response) => {
     try {
+      // Ensure database is initialized
+      await initializeDatabase();
       const parsed = generateTextRequestSchema.parse(req.body);
       const copyVariations = await generateMarketingCopy(parsed);
       
@@ -318,7 +331,7 @@ export async function registerRoutes(
       } else {
         console.error("Image generation error:", error);
         res.status(500).json({ 
-          error: error.message || "Failed to generate image. Please ensure OPENAI_API_KEY is configured and has sufficient credits." 
+          error: error.message || "Failed to generate image. Please ensure HUGGINGFACE_API_KEY is configured." 
         });
       }
     }

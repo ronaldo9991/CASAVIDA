@@ -162,10 +162,10 @@ export async function generateProductImage(params: {
   const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting setup with professional photography, premium materials clearly visible (wood grain, fabric texture, metal finishes), 4K resolution aesthetic, sharp focus, professional composition, clean background that complements the product, product should be the clear focal point. ${additionalContext || ''} The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
 
   try {
-    // Using Hugging Face Stable Diffusion XL model
+    // Using Hugging Face Stable Diffusion XL model via new router endpoint
     // Note: First request might take longer as model loads (cold start)
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+      "https://router.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
       {
         headers: {
           Authorization: `Bearer ${apiKey}`,
