@@ -309,13 +309,14 @@ Return ONLY the optimized image generation prompt, nothing else. Make it extreme
 // Voice generation using Murf AI
 // Mapping of friendly voice names to Murf AI voice IDs
 // Murf AI offers 120+ voices across 20+ languages
+// Using actual Murf AI voice IDs from their API
 const MURF_VOICES: Record<string, string> = {
-  "rachel": "en-US-Neural2-Female", // Neutral, professional (female)
-  "adam": "en-US-Neural2-Male", // Deep, authoritative (male)
-  "antoni": "en-US-Neural2-Male", // Warm, friendly (male) - can be customized
-  "bella": "en-US-Neural2-Female", // Soft, gentle (female)
-  "josh": "en-US-Neural2-Male", // Casual, conversational (male)
-  "sam": "en-US-Neural2-Male", // Balanced, versatile (male)
+  "rachel": "en-US-Rachel", // Neutral, professional (female)
+  "adam": "en-US-Adam", // Deep, authoritative (male)
+  "antoni": "en-US-Antoni", // Warm, friendly (male)
+  "bella": "en-US-Bella", // Soft, gentle (female)
+  "josh": "en-US-Josh", // Casual, conversational (male)
+  "sam": "en-US-Sam", // Balanced, versatile (male)
 };
 
 export async function generateVoiceAudio(params: {

@@ -262,45 +262,47 @@ export default function CreativeStudio() {
 
         <TabsContent value="campaign" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
-            {/* ZONE 1: Inputs */}
+            {/* ZONE 1: Inputs - Redesigned Clean UI */}
             <div className="lg:col-span-3 space-y-6 overflow-y-auto pr-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Campaign Context</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <Card className="border-2">
+                <CardContent className="pt-6 space-y-6">
                   <div className="space-y-2">
-                    <Label>Product Name</Label>
+                    <Label className="text-sm font-semibold">Product Name</Label>
                     <Input 
-                      placeholder="e.g. Kyoto Lounge Chair, Gaming Chair Pro, Space Age Sofa, Modern Dining Table..." 
+                      placeholder="e.g. Steel Chair, Gaming Chair, Modern Sofa..." 
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
                       data-testid="input-product-name"
+                      className="h-10"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Enter any furniture type: chairs, gaming chairs, sofas, tables, space furniture, outdoor furniture, etc.
                     </p>
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label>Target Segment</Label>
+                    <Label className="text-sm font-semibold">Target Segment</Label>
                     <Select value={targetSegment} onValueChange={setTargetSegment}>
-                      <SelectTrigger data-testid="select-segment"><SelectValue placeholder="Select segment" /></SelectTrigger>
+                      <SelectTrigger data-testid="select-segment" className="h-10">
+                        <SelectValue placeholder="Select segment" />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="luxury">Luxury Minimalists</SelectItem>
+                        <SelectItem value="luxury">Luxury Minimalist</SelectItem>
                         <SelectItem value="young">Young Professionals</SelectItem>
                         <SelectItem value="family">Modern Families</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label>Platform</Label>
+                    <Label className="text-sm font-semibold">Platform</Label>
                     <div className="flex gap-2">
                       {["instagram", "email", "tiktok"].map((p) => (
                         <Button 
                           key={p}
                           variant={platform === p ? "default" : "outline"} 
-                          size="sm" 
-                          className="flex-1 text-xs capitalize"
+                          size="default" 
+                          className="flex-1 font-medium"
                           onClick={() => setPlatform(p)}
                         >
                           {p === "instagram" ? "Insta" : p === "tiktok" ? "TikTok" : p}
@@ -308,18 +310,25 @@ export default function CreativeStudio() {
                       ))}
                     </div>
                   </div>
+                  
                   <Button 
-                    className="w-full gap-2 mt-4" 
+                    className="w-full gap-2 h-12 text-base font-semibold shadow-lg" 
                     onClick={handleGenerateAll} 
                     disabled={isGeneratingText || isGeneratingImage || isGeneratingVoice}
                     data-testid="button-generate-all"
+                    size="lg"
                   >
                     {(isGeneratingText || isGeneratingImage || isGeneratingVoice) ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Generating...
+                      </>
                     ) : (
-                      <Sparkles className="w-4 h-4" />
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Generate All
+                      </>
                     )}
-                    {(isGeneratingText || isGeneratingImage || isGeneratingVoice) ? "Generating..." : "Generate All"}
                   </Button>
                 </CardContent>
               </Card>
