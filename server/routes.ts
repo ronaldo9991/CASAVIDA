@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage, seedCasaVidaFailureData } from "./storage";
+import { initializeDatabase } from "./db";
 import { 
   generateTextRequestSchema,
   generateImageRequestSchema,
@@ -128,9 +129,22 @@ export async function registerRoutes(
     });
   });
 
+  // ============ DATABASE INITIALIZATION API ============
+  app.post("/api/db/init", async (_req: Request, res: Response) => {
+    try {
+      const result = await initializeDatabase();
+      res.json({ success: true, ...result });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============ SEED DATA API ============
   app.post("/api/seed", async (_req: Request, res: Response) => {
     try {
+      // Initialize database first if tables don't exist
+      await initializeDatabase();
+      // Then seed the data
       const result = await seedCasaVidaFailureData();
       res.json({ success: true, seeded: result });
     } catch (error: any) {
