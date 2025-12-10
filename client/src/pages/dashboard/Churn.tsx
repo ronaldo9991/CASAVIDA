@@ -6,28 +6,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { useQuery } from "@tanstack/react-query";
 import type { Segment } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const BEFORE_CHURN = [
-  { segment: "Functional Homemakers", churnRisk: 38, atRisk: 1596, size: 4200 },
-  { segment: "Home Enhancers", churnRisk: 22, atRisk: 196, size: 890 },
-  { segment: "Occasional Browsers", churnRisk: 55, atRisk: 1155, size: 2100 },
-];
-
-const AFTER_CHURN = [
-  { segment: "Functional Homemakers", churnRisk: 15, atRisk: 728, size: 4850 },
-  { segment: "Home Enhancers", churnRisk: 18, atRisk: 130, size: 720 },
-  { segment: "Occasional Browsers", churnRisk: 42, atRisk: 693, size: 1650 },
-];
-
-const CHURN_PROGRESSION = [
-  { month: "Before", functionalHomemakers: 38, homeEnhancers: 22, occasional: 55 },
-  { month: "Month 1", functionalHomemakers: 34, homeEnhancers: 21, occasional: 52 },
-  { month: "Month 2", functionalHomemakers: 28, homeEnhancers: 20, occasional: 48 },
-  { month: "Month 3", functionalHomemakers: 22, homeEnhancers: 19, occasional: 45 },
-  { month: "Month 4", functionalHomemakers: 18, homeEnhancers: 18, occasional: 44 },
-  { month: "Month 5", functionalHomemakers: 16, homeEnhancers: 18, occasional: 43 },
-  { month: "After", functionalHomemakers: 15, homeEnhancers: 18, occasional: 42 },
-];
+import { BEFORE_CHURN, AFTER_CHURN, CHURN_PROGRESSION } from "@/lib/dashboardData";
 
 const COMPARISON_DATA = BEFORE_CHURN.map((before, i) => ({
   segment: before.segment.split(' ').map(w => w[0]).join(''),

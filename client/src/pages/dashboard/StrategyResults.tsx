@@ -49,18 +49,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
 import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
-
-const BEFORE_SEGMENTS = [
-  { name: "Functional Homemakers", size: 4200, churnRisk: 38, healthScore: 28, avgClv: 680, clvTrend: -18, isCore: true, retentionRate: 62 },
-  { name: "Home Enhancers", size: 890, churnRisk: 22, healthScore: 42, avgClv: 1850, clvTrend: -5, isCore: false, retentionRate: 78 },
-  { name: "Occasional Browsers", size: 2100, churnRisk: 55, healthScore: 18, avgClv: 180, clvTrend: -22, isCore: false, retentionRate: 45 },
-];
-
-const AFTER_SEGMENTS = [
-  { name: "Functional Homemakers", size: 4850, churnRisk: 15, healthScore: 72, avgClv: 820, clvTrend: 12, isCore: true, retentionRate: 85 },
-  { name: "Home Enhancers", size: 720, churnRisk: 18, healthScore: 55, avgClv: 1920, clvTrend: 4, isCore: false, retentionRate: 82 },
-  { name: "Occasional Browsers", size: 1650, churnRisk: 42, healthScore: 28, avgClv: 210, clvTrend: 5, isCore: false, retentionRate: 58 },
-];
+import { 
+  BEFORE_SEGMENTS, 
+  AFTER_SEGMENTS, 
+  MONTHLY_PROGRESS, 
+  INITIATIVE_RESULTS,
+  CALCULATED_METRICS 
+} from "@/lib/dashboardData";
 
 const BEFORE_COMPETITORS = [
   { name: "HomeStyle Direct", marketShare: 28, threat: "high" },
@@ -74,15 +69,6 @@ const AFTER_COMPETITORS = [
   { name: "ValueHome", marketShare: 20, threat: "low" },
 ];
 
-const MONTHLY_PROGRESS = [
-  { month: "Month 0", churnRate: 38, clv: 680, retention: 62, marketShare: 32 },
-  { month: "Month 1", churnRate: 34, clv: 695, retention: 66, marketShare: 33 },
-  { month: "Month 2", churnRate: 28, clv: 720, retention: 72, marketShare: 34 },
-  { month: "Month 3", churnRate: 22, clv: 755, retention: 78, marketShare: 35 },
-  { month: "Month 4", churnRate: 18, clv: 785, retention: 82, marketShare: 36 },
-  { month: "Month 5", churnRate: 16, clv: 805, retention: 84, marketShare: 36 },
-  { month: "Month 6", churnRate: 15, clv: 820, retention: 85, marketShare: 37 },
-];
 
 const BLUE_OCEAN_FACTORS = [
   { factor: "Premium Showroom Experience", before: 8, after: 4, industry: 6, action: "Reduce" },
@@ -95,14 +81,6 @@ const BLUE_OCEAN_FACTORS = [
   { factor: "Customer Service Response", before: 5, after: 8, industry: 5, action: "Raise" },
 ];
 
-const INITIATIVE_RESULTS = [
-  { name: "Loyalty Program Revamp", status: "completed", impact: "Retention +23%", cost: "$45,000" },
-  { name: "Churn Prediction Model", status: "completed", impact: "Early detection 78%", cost: "$15,000" },
-  { name: "Value Bundle Promotions", status: "completed", impact: "Basket size +18%", cost: "$12,000" },
-  { name: "Premium Influencer Campaign", status: "paused", impact: "Saved $200K+", cost: "$0" },
-  { name: "AI Style Consultant", status: "deferred", impact: "Reallocated budget", cost: "$0" },
-  { name: "Showroom Expansion", status: "cancelled", impact: "Saved $850K", cost: "$0" },
-];
 
 const CLV_PROGRESSION = [
   { month: "Month 0", functionalHomemakers: 680, homeEnhancers: 1850, occasional: 180 },

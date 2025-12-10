@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, Users, TrendingUp, Shield, Zap, Heart, Star, CheckCircle2, ArrowRight, Lightbulb } from "lucide-react";
+import { SUMMARY_METRICS, CLV_GAIN, CHURN_REDUCTION, CLV_GAIN_PERCENT } from "@/lib/dashboardData";
 
 export default function Strategy() {
   const strategies = [
@@ -89,10 +90,10 @@ export default function Strategy() {
   ];
 
   const keyMetrics = [
-    { label: "Overall Churn Reduction", value: "41% → 18%", change: "-56%" },
-    { label: "Customer Satisfaction (NPS)", value: "23 → 67", change: "+191%" },
-    { label: "Average CLV", value: "$1,847 → $2,456", change: "+33%" },
-    { label: "Repeat Purchase Rate", value: "28% → 52%", change: "+86%" },
+    { label: "Core Churn Reduction", value: `${SUMMARY_METRICS.before.churnRisk}% → ${SUMMARY_METRICS.after.churnRisk}%`, change: `-${CHURN_REDUCTION}%` },
+    { label: "Customer Satisfaction (NPS)", value: `${SUMMARY_METRICS.before.nps} → ${SUMMARY_METRICS.after.nps}`, change: `+${Math.round((SUMMARY_METRICS.after.nps - SUMMARY_METRICS.before.nps) / SUMMARY_METRICS.before.nps * 100)}%` },
+    { label: "Total CLV", value: `$${SUMMARY_METRICS.before.totalClvMillions}M → $${SUMMARY_METRICS.after.totalClvMillions}M`, change: `+${CLV_GAIN_PERCENT}%` },
+    { label: "Core Retention Rate", value: `${SUMMARY_METRICS.before.retention}% → ${SUMMARY_METRICS.after.retention}%`, change: `+${SUMMARY_METRICS.after.retention - SUMMARY_METRICS.before.retention}%` },
   ];
 
   return (

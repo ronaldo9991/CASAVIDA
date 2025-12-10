@@ -18,28 +18,12 @@ import {
   ComposedChart
 } from "recharts";
 import { TrendingUp, TrendingDown, DollarSign, Users, ArrowRight, Info, Target, Sparkles } from "lucide-react";
-
-const BEFORE_CLV_DATA = [
-  { segment: "Functional Homemakers", avgClv: 680, totalClv: 2856000, customers: 4200, trend: -12 },
-  { segment: "Home Enhancers", avgClv: 1850, totalClv: 1646500, customers: 890, trend: -5 },
-  { segment: "Occasional Browsers", avgClv: 180, totalClv: 378000, customers: 2100, trend: -18 },
-];
-
-const AFTER_CLV_DATA = [
-  { segment: "Functional Homemakers", avgClv: 820, totalClv: 3977000, customers: 4850, trend: +21 },
-  { segment: "Home Enhancers", avgClv: 1920, totalClv: 1382400, customers: 720, trend: +4 },
-  { segment: "Occasional Browsers", avgClv: 210, totalClv: 346500, customers: 1650, trend: +17 },
-];
-
-const CLV_MONTHLY_PROGRESSION = [
-  { month: "Before", functionalHomemakers: 680, homeEnhancers: 1850, occasional: 180, total: 4880500 },
-  { month: "Month 1", functionalHomemakers: 695, homeEnhancers: 1860, occasional: 185, total: 4950000 },
-  { month: "Month 2", functionalHomemakers: 720, homeEnhancers: 1875, occasional: 190, total: 5120000 },
-  { month: "Month 3", functionalHomemakers: 755, homeEnhancers: 1890, occasional: 195, total: 5350000 },
-  { month: "Month 4", functionalHomemakers: 785, homeEnhancers: 1900, occasional: 200, total: 5520000 },
-  { month: "Month 5", functionalHomemakers: 805, homeEnhancers: 1910, occasional: 205, total: 5650000 },
-  { month: "After", functionalHomemakers: 820, homeEnhancers: 1920, occasional: 210, total: 5705900 },
-];
+import { 
+  BEFORE_CLV_DATA, 
+  AFTER_CLV_DATA, 
+  CLV_MONTHLY_PROGRESSION,
+  CALCULATED_METRICS 
+} from "@/lib/dashboardData";
 
 const CLV_DISTRIBUTION_BEFORE = [
   { range: "$0-200", count: 2100, percentage: 29 },

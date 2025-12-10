@@ -5,6 +5,7 @@ import { FileText, Download, Printer, CheckCircle2, AlertTriangle, TrendingUp, T
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
+import { SUMMARY_METRICS, KEY_RESULTS, STRATEGY_ACTIONS, CLV_GAIN, CHURN_REDUCTION } from "@/lib/dashboardData";
 
 interface DashboardSummary {
   segments: { total: number; totalCustomers: number; core: any; };
@@ -14,36 +15,20 @@ interface DashboardSummary {
 }
 
 const BEFORE_METRICS = {
-  churnRisk: 38,
-  totalClv: 4.88,
-  marketShare: 32,
-  totalCustomers: 7190,
-  coreHealthScore: 28,
+  churnRisk: SUMMARY_METRICS.before.churnRisk,
+  totalClv: parseFloat(SUMMARY_METRICS.before.totalClvMillions),
+  marketShare: SUMMARY_METRICS.before.marketShare,
+  totalCustomers: SUMMARY_METRICS.before.totalCustomers,
+  coreHealthScore: SUMMARY_METRICS.before.coreHealthScore,
 };
 
 const AFTER_METRICS = {
-  churnRisk: 15,
-  totalClv: 6.42,
-  marketShare: 37,
-  totalCustomers: 7220,
-  coreHealthScore: 72,
+  churnRisk: SUMMARY_METRICS.after.churnRisk,
+  totalClv: parseFloat(SUMMARY_METRICS.after.totalClvMillions),
+  marketShare: SUMMARY_METRICS.after.marketShare,
+  totalCustomers: SUMMARY_METRICS.after.totalCustomers,
+  coreHealthScore: SUMMARY_METRICS.after.coreHealthScore,
 };
-
-const KEY_RESULTS = [
-  { metric: "Core Segment Churn", before: "38%", after: "15%", change: "-23%", positive: true },
-  { metric: "Total CLV", before: "$4.88M", after: "$6.42M", change: "+32%", positive: true },
-  { metric: "Market Share", before: "32%", after: "37%", change: "+5%", positive: true },
-  { metric: "Core Health Score", before: "28", after: "72", change: "+44", positive: true },
-  { metric: "Acquisition Cost", before: "$320", after: "$185", change: "-42%", positive: true },
-];
-
-const STRATEGY_ACTIONS = [
-  { action: "Loyalty Program Revamp", status: "Completed", impact: "Retention +23%", cost: "$45K" },
-  { action: "Churn Prediction Model", status: "Completed", impact: "Early detection 78%", cost: "$15K" },
-  { action: "Value Bundle Promotions", status: "Completed", impact: "Basket size +18%", cost: "$12K" },
-  { action: "Premium Influencer Campaign", status: "Paused", impact: "Saved $200K+", cost: "$0" },
-  { action: "Showroom Expansion", status: "Cancelled", impact: "Saved $850K", cost: "$0" },
-];
 
 export default function ManagerSummary() {
   const { data: summary } = useQuery<DashboardSummary>({
@@ -132,7 +117,7 @@ export default function ManagerSummary() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               CasaVida has successfully reversed its declining trajectory by implementing a <strong>core-segment-first strategy</strong>. 
               The company shifted focus from chasing the premium "Home Enhancer" segment to protecting and growing the core "Functional Homemaker" base.
-              Over 6 months, this resulted in a <strong>23% reduction in core churn</strong>, <strong>$1.54M increase in total CLV</strong>, 
+              Over 6 months, this resulted in a <strong>{CHURN_REDUCTION}% reduction in core churn</strong>, <strong>${(CLV_GAIN / 1000000).toFixed(2)}M increase in total CLV</strong>, 
               and <strong>$1.05M in cost savings</strong> from paused/cancelled initiatives.
             </p>
           </section>

@@ -52,29 +52,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import Papa from "papaparse";
-
-const CRISIS_METRICS = {
-  before: {
-    churnRate: 38,
-    clv: 680,
-    marketShare: 32,
-    healthScore: 28,
-    nps: 35,
-    retention: 62,
-    cac: 320,
-    revenue: 4.2,
-  },
-  after: {
-    churnRate: 15,
-    clv: 820,
-    marketShare: 37,
-    healthScore: 72,
-    nps: 65,
-    retention: 85,
-    cac: 185,
-    revenue: 5.8,
-  },
-};
+import { CRISIS_METRICS, BEFORE_SEGMENTS, AFTER_SEGMENTS } from "@/lib/dashboardData";
 
 const MONTHLY_CRISIS_DATA = [
   { month: "Jan", churn: 32, clv: 720, revenue: 4.5, status: "pre-crisis" },
@@ -88,38 +66,33 @@ const MONTHLY_CRISIS_DATA = [
   { month: "Sep", churn: 15, clv: 820, revenue: 5.8, status: "stable" },
 ];
 
-const SEGMENT_CRISIS_DATA = [
-  { 
-    segment: "Functional Homemakers",
-    beforeChurn: 38, afterChurn: 15,
-    beforeCLV: 680, afterCLV: 820,
-    beforeHealth: 28, afterHealth: 72,
-    size: 4200, afterSize: 4850,
-    isCore: true,
-    problem: "Neglected core segment while chasing premium customers",
-    solution: "Prioritized loyalty programs and personalized retention campaigns"
-  },
-  { 
-    segment: "Home Enhancers",
-    beforeChurn: 22, afterChurn: 18,
-    beforeCLV: 1850, afterCLV: 1920,
-    beforeHealth: 42, afterHealth: 55,
-    size: 890, afterSize: 720,
-    isCore: false,
-    problem: "Over-invested in acquisition with diminishing returns",
-    solution: "Reduced spending, focused on high-value retention"
-  },
-  { 
-    segment: "Occasional Browsers",
-    beforeChurn: 55, afterChurn: 42,
-    beforeCLV: 180, afterCLV: 210,
-    beforeHealth: 18, afterHealth: 28,
-    size: 2100, afterSize: 1650,
-    isCore: false,
-    problem: "Low engagement, high acquisition cost",
-    solution: "De-prioritized, allowed natural attrition"
-  },
-];
+const SEGMENT_CRISIS_DATA = BEFORE_SEGMENTS.map((before, i) => {
+  const after = AFTER_SEGMENTS[i];
+  const problems = [
+    "Neglected core segment while chasing premium customers",
+    "Over-invested in acquisition with diminishing returns",
+    "Low engagement, high acquisition cost"
+  ];
+  const solutions = [
+    "Prioritized loyalty programs and personalized retention campaigns",
+    "Reduced spending, focused on high-value retention",
+    "De-prioritized, allowed natural attrition"
+  ];
+  return {
+    segment: before.name,
+    beforeChurn: before.churnRisk,
+    afterChurn: after.churnRisk,
+    beforeCLV: before.avgClv,
+    afterCLV: after.avgClv,
+    beforeHealth: before.healthScore,
+    afterHealth: after.healthScore,
+    size: before.size,
+    afterSize: after.size,
+    isCore: before.isCore,
+    problem: problems[i],
+    solution: solutions[i]
+  };
+});
 
 const PROBLEM_AREAS = [
   {
