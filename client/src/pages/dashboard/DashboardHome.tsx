@@ -8,339 +8,422 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  ComposedChart,
-  Scatter,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, Users, DollarSign, Activity, ShoppingBag, Zap, Download } from "lucide-react";
-import { useState } from "react";
+import { 
+  AlertTriangle, 
+  TrendingDown, 
+  Users, 
+  DollarSign, 
+  Activity, 
+  Target,
+  Loader2,
+  RefreshCw,
+  Pause,
+  Play,
+  Brain,
+  Download
+} from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
-// Synthetically generated data for "Efficiency"
-const generateTrendData = () => {
-  return Array.from({ length: 12 }, (_, i) => ({
-    name: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][i],
-    revenue: Math.floor(Math.random() * 5000) + 2000,
-    clv: Math.floor(Math.random() * 1000) + 400,
-    churn: Math.floor(Math.random() * 50) + 10,
-  }));
-};
+interface DashboardSummary {
+  segments: {
+    total: number;
+    totalCustomers: number;
+    core: {
+      name: string;
+      size: number;
+      healthScore: number;
+      churnRisk: number;
+      clvTrend: number;
+    } | null;
+    new: {
+      name: string;
+      size: number;
+      healthScore: number;
+      acquisitionCost: number;
+      growthRate: number;
+    } | null;
+  };
+  kpis: {
+    avgChurnRisk: number;
+    totalClv: number;
+    marketShare: number;
+    competitorThreat: number;
+  };
+  initiatives: {
+    total: number;
+    focus: number;
+    pause: number;
+    focusList: { name: string; impact: number; effort: number }[];
+    pauseList: { name: string; recommendation: string }[];
+  };
+  alerts: { type: string; message: string; action: string }[];
+}
 
-const dataTrend = generateTrendData();
+interface Recommendations {
+  executiveSummary: string;
+  topRisks: { risk: string; severity: string; action: string }[];
+  strategicMoves: { move: string; priority: string; impact: string }[];
+  segmentStrategy: { segment: string; recommendation: string }[];
+}
 
-const dataSegments = [
-  { name: "Luxury Minimalists", value: 450, color: "#8b5cf6" }, // Violet
-  { name: "Young Professionals", value: 380, color: "#10b981" }, // Emerald
-  { name: "Decor Enthusiasts", value: 290, color: "#f59e0b" }, // Amber
-  { name: "Bargain Hunters", value: 150, color: "#3b82f6" }, // Blue
-  { name: "Corporate Accounts", value: 90, color: "#ec4899" }, // Pink
-];
-
-const dataCampaigns = [
-  { name: "Autumn Solstice", roas: 4.2, spend: 12000, revenue: 50400 },
-  { name: "Dubai Launch", roas: 3.8, spend: 25000, revenue: 95000 },
-  { name: "Sustainable Living", roas: 5.1, spend: 8000, revenue: 40800 },
-  { name: "Influencer Collab", roas: 2.9, spend: 15000, revenue: 43500 },
-];
+const SEGMENT_COLORS = ["#ef4444", "#f59e0b", "#6b7280", "#8b5cf6", "#10b981"];
 
 export default function DashboardHome() {
-  const [timeRange, setTimeRange] = useState("12m");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: summary, isLoading: summaryLoading } = useQuery<DashboardSummary>({
+    queryKey: ["/api/dashboard/summary"],
+  });
+
+  const { data: recommendations, isLoading: recsLoading } = useQuery<Recommendations>({
+    queryKey: ["/api/dashboard/recommendations"],
+    enabled: !!summary && summary.segments.total > 0,
+  });
+
+  const { data: segments = [] } = useQuery<any[]>({
+    queryKey: ["/api/segments"],
+  });
+
+  const { data: initiatives = [] } = useQuery<any[]>({
+    queryKey: ["/api/initiatives"],
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/seed");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/segments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/competitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/initiatives"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/recommendations"] });
+      toast({
+        title: "Crisis Data Loaded",
+        description: "CasaVida failing company scenario has been loaded.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to seed data.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const segmentChartData = segments.map((s, i) => ({
+    name: s.name,
+    value: s.size,
+    color: s.color || SEGMENT_COLORS[i % SEGMENT_COLORS.length],
+  }));
+
+  const hasData = summary && summary.segments.total > 0;
 
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in-50 duration-500">
-        {/* Header with Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Executive Command Center</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Crisis Command Center</h2>
             <p className="text-muted-foreground">
-              LivingMarket Intelligence Engine • Real-time Data Sync
+              LivingMarket AI • CasaVida Growth Strategy Dashboard
             </p>
           </div>
           <div className="flex items-center gap-2">
-             <Button variant="outline" size="sm" onClick={() => setTimeRange("30d")} className={timeRange === "30d" ? "bg-muted" : ""}>30d</Button>
-             <Button variant="outline" size="sm" onClick={() => setTimeRange("90d")} className={timeRange === "90d" ? "bg-muted" : ""}>90d</Button>
-             <Button variant="outline" size="sm" onClick={() => setTimeRange("12m")} className={timeRange === "12m" ? "bg-muted" : ""}>12m</Button>
-             <Button size="sm" className="gap-2"><Download className="w-4 h-4"/> Export Report</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => seedMutation.mutate()}
+              disabled={seedMutation.isPending}
+              className="gap-2"
+              data-testid="button-seed-data"
+            >
+              {seedMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+              Load Crisis Data
+            </Button>
           </div>
         </div>
 
-        {/* High-Efficiency KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            {
-              title: "Total Revenue",
-              value: "$2,405,000",
-              trend: "+12.5%",
-              up: true,
-              icon: DollarSign,
-              desc: "vs. previous period"
-            },
-            {
-              title: "Active Customers",
-              value: "14,230",
-              trend: "+4.1%",
-              up: true,
-              icon: Users,
-              desc: "1,204 new this month"
-            },
-            {
-              title: "Churn Rate",
-              value: "2.4%",
-              trend: "-0.5%",
-              up: true, 
-              good: true,
-              icon: Activity,
-              desc: "Below industry avg (3.1%)"
-            },
-            {
-              title: "Avg Order Value",
-              value: "$845",
-              trend: "+1.2%",
-              up: true,
-              icon: ShoppingBag,
-              desc: "Driven by 'Living' category"
-            },
-          ].map((kpi, i) => (
-            <Card key={i} className="hover:border-primary/50 transition-colors cursor-default">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {kpi.title}
-                </CardTitle>
-                <kpi.icon className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold tracking-tight">{kpi.value}</div>
-                <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-muted-foreground">{kpi.desc}</p>
-                    <div className={`flex items-center text-xs font-medium ${kpi.good || kpi.up ? "text-emerald-500" : "text-rose-500"}`}>
-                        {kpi.up ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-                        {kpi.trend}
-                    </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Complex Data Visualization Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Main Revenue Chart */}
-          <Card className="col-span-1 lg:col-span-8">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                  <div>
-                      <CardTitle>Revenue vs. CLV Velocity</CardTitle>
-                      <CardDescription>
-                        Correlation analysis of monthly revenue against customer lifetime value growth.
-                      </CardDescription>
-                  </div>
-                  <Zap className="w-5 h-5 text-yellow-500" />
-              </div>
-            </CardHeader>
-            <CardContent className="pl-0">
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={dataTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
-                    <XAxis 
-                        dataKey="name" 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        dy={10}
-                    />
-                    <YAxis 
-                        yAxisId="left"
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tickFormatter={(value) => `$${value/1000}k`} 
-                        dx={-10}
-                    />
-                    <YAxis 
-                        yAxisId="right" 
-                        orientation="right" 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tickFormatter={(value) => `$${value}`} 
-                    />
-                    <Tooltip
-                        contentStyle={{
-                            backgroundColor: "hsl(var(--popover))",
-                            borderColor: "hsl(var(--border))",
-                            color: "hsl(var(--popover-foreground))",
-                            borderRadius: "var(--radius)",
-                            boxShadow: "var(--shadow-md)"
-                        }}
-                        itemStyle={{ padding: 0 }}
-                    />
-                    <Legend />
-                    <Area 
-                        yAxisId="left"
-                        type="monotone" 
-                        dataKey="revenue" 
-                        name="Monthly Revenue"
-                        stroke="hsl(var(--primary))" 
-                        fillOpacity={1} 
-                        fill="url(#colorRevenue)" 
-                    />
-                    <Line 
-                        yAxisId="right"
-                        type="monotone" 
-                        dataKey="clv" 
-                        name="Avg CLV"
-                        stroke="hsl(var(--chart-2))" 
-                        strokeWidth={2} 
-                        dot={{ r: 4, strokeWidth: 0, fill: "hsl(var(--chart-2))" }} 
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
+        {!hasData && !summaryLoading && (
+          <Card className="border-dashed border-2">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <AlertTriangle className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Data Loaded</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                Click "Load Crisis Data" to simulate the CasaVida failing company scenario.
+              </p>
+              <Button onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending}>
+                {seedMutation.isPending ? "Loading..." : "Load Crisis Data"}
+              </Button>
             </CardContent>
           </Card>
+        )}
 
-          {/* Segment Radar/Pie */}
-          <Card className="col-span-1 lg:col-span-4">
-            <CardHeader>
-              <CardTitle>Segment Distribution</CardTitle>
-              <CardDescription>
-                Active user base composition.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={dataSegments}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={80}
-                      outerRadius={110}
-                      paddingAngle={2}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {dataSegments.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                        contentStyle={{
-                            backgroundColor: "hsl(var(--popover))",
-                            borderColor: "hsl(var(--border))",
-                            color: "hsl(var(--popover-foreground))"
-                        }}
-                    />
-                    <Legend 
-                        layout="horizontal" 
-                        verticalAlign="bottom" 
-                        align="center"
-                        wrapperStyle={{ paddingTop: "20px" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+        {hasData && (
+          <>
+            {summary.alerts && summary.alerts.length > 0 && (
+              <div className="space-y-2">
+                {summary.alerts.map((alert, i) => (
+                  <Card 
+                    key={i} 
+                    className={`border-l-4 ${
+                      alert.type === 'critical' ? 'border-l-red-500 bg-red-500/5' : 'border-l-amber-500 bg-amber-500/5'
+                    }`}
+                  >
+                    <CardContent className="flex items-center justify-between py-4">
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle className={`w-5 h-5 ${alert.type === 'critical' ? 'text-red-500' : 'text-amber-500'}`} />
+                        <div>
+                          <p className="font-semibold text-sm">{alert.message}</p>
+                          <p className="text-xs text-muted-foreground">{alert.action}</p>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${
+                        alert.type === 'critical' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
+                      }`}>
+                        {alert.type}
+                      </span>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
 
-        {/* Campaign Performance Bar Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Campaign Performance (ROAS)</CardTitle>
-                    <CardDescription>Return on Ad Spend across active campaigns.</CardDescription>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="hover:border-red-500/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Avg Churn Risk</CardTitle>
+                  <Activity className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={dataCampaigns} layout="vertical" margin={{ left: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted/30" />
-                                <XAxis type="number" hide />
-                                <YAxis 
-                                    dataKey="name" 
-                                    type="category" 
-                                    width={100} 
-                                    tickLine={false} 
-                                    axisLine={false} 
-                                    fontSize={12} 
-                                    stroke="hsl(var(--muted-foreground))" 
-                                />
-                                <Tooltip 
-                                    cursor={{fill: 'transparent'}}
-                                    contentStyle={{
-                                        backgroundColor: "hsl(var(--popover))",
-                                        borderColor: "hsl(var(--border))",
-                                        color: "hsl(var(--popover-foreground))"
-                                    }}
-                                />
-                                <Bar dataKey="roas" name="ROAS" fill="hsl(var(--chart-4))" radius={[0, 4, 4, 0]} barSize={30}>
-                                    {dataCampaigns.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.roas > 4 ? "hsl(var(--chart-2))" : "hsl(var(--chart-4))"} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                  <div className="text-2xl font-bold tracking-tight text-red-600">{summary.kpis.avgChurnRisk}%</div>
+                  <p className="text-xs text-muted-foreground">Critical threshold: 25%</p>
                 </CardContent>
-            </Card>
+              </Card>
 
-            <Card className="flex flex-col">
-                <CardHeader>
-                    <CardTitle>AI Recommendations</CardTitle>
-                    <CardDescription>Actionable intelligence engine outputs.</CardDescription>
+              <Card className="hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total CLV</CardTitle>
+                  <DollarSign className="h-4 w-4 text-primary" />
                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col gap-4">
-                    <div className="p-4 rounded-lg border border-l-4 border-l-emerald-500 bg-emerald-500/5 border-border">
-                        <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-semibold text-sm">Scale "Sustainable Living"</h4>
-                            <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300">High Confidence</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            ROAS is at 5.1x. Increasing budget by 20% is projected to yield an additional $15k revenue without efficiency loss.
-                        </p>
-                    </div>
-                    
-                    <div className="p-4 rounded-lg border border-l-4 border-l-amber-500 bg-amber-500/5 border-border">
-                        <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-semibold text-sm">Segment Alert: Corporate</h4>
-                            <span className="text-[10px] uppercase font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full dark:bg-amber-900 dark:text-amber-300">Medium Risk</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Engagement dropped 12% this month. Consider sending a specialized B2B catalog update.
-                        </p>
-                    </div>
-
-                     <Button className="w-full mt-auto" variant="secondary">View All Insights</Button>
+                <CardContent>
+                  <div className="text-2xl font-bold tracking-tight">${(summary.kpis.totalClv / 1000000).toFixed(1)}M</div>
+                  <p className="text-xs text-muted-foreground">Across all segments</p>
                 </CardContent>
-            </Card>
-        </div>
+              </Card>
+
+              <Card className="hover:border-amber-500/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Market Share</CardTitle>
+                  <Target className="h-4 w-4 text-amber-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold tracking-tight">{summary.kpis.marketShare}%</div>
+                  <div className="flex items-center gap-1 text-xs text-red-500">
+                    <TrendingDown className="w-3 h-3" /> Declining vs. competitors
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Customers</CardTitle>
+                  <Users className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold tracking-tight">{summary.segments.totalCustomers.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">{summary.segments.total} segments tracked</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {recommendations && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-primary" />
+                    <CardTitle>AI Executive Summary</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed">{recommendations.executiveSummary}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    {recommendations.topRisks.slice(0, 3).map((risk, i) => (
+                      <div key={i} className={`p-3 rounded-lg border ${
+                        risk.severity === 'critical' ? 'border-red-500/50 bg-red-500/10' : 'border-amber-500/50 bg-amber-500/10'
+                      }`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-semibold uppercase">{risk.severity}</span>
+                          <AlertTriangle className={`w-3 h-3 ${risk.severity === 'critical' ? 'text-red-500' : 'text-amber-500'}`} />
+                        </div>
+                        <p className="text-sm font-medium">{risk.risk}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{risk.action}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <Card className="col-span-1 lg:col-span-5">
+                <CardHeader>
+                  <CardTitle>Segment Health</CardTitle>
+                  <CardDescription>Customer distribution by segment</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {segmentChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={segmentChartData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {segmentChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))" }}
+                          formatter={(value: number) => [`${value.toLocaleString()}`, 'Customers']}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-muted-foreground">
+                      No segment data
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="col-span-1 lg:col-span-7">
+                <CardHeader>
+                  <CardTitle>Initiative Prioritization Board</CardTitle>
+                  <CardDescription>
+                    {summary.initiatives.focus} to FOCUS, {summary.initiatives.pause} to PAUSE
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Play className="w-4 h-4 text-green-500" />
+                        <span className="font-semibold text-sm">FOCUS</span>
+                      </div>
+                      <div className="space-y-2">
+                        {initiatives.filter((i: any) => i.priority === 'focus').map((init: any) => (
+                          <div key={init.id} className="p-2 rounded border border-green-500/30 bg-green-500/5">
+                            <p className="text-sm font-medium">{init.name}</p>
+                            <div className="flex gap-2 mt-1">
+                              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                Impact: {init.impact}/10
+                              </span>
+                              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                                Effort: {init.effort}/10
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Pause className="w-4 h-4 text-amber-500" />
+                        <span className="font-semibold text-sm">PAUSE</span>
+                      </div>
+                      <div className="space-y-2">
+                        {initiatives.filter((i: any) => i.priority === 'pause').map((init: any) => (
+                          <div key={init.id} className="p-2 rounded border border-amber-500/30 bg-amber-500/5">
+                            <p className="text-sm font-medium">{init.name}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{init.recommendation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {recommendations && recommendations.strategicMoves && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Strategic Action Plan</CardTitle>
+                  <CardDescription>AI-recommended moves to reverse decline</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {recommendations.strategicMoves.map((move, i) => (
+                      <div key={i} className={`p-4 rounded-lg border ${
+                        move.priority === 'immediate' ? 'border-red-500/50 bg-red-500/5' : 
+                        move.priority === 'short-term' ? 'border-amber-500/50 bg-amber-500/5' : 
+                        'border-muted'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                            move.priority === 'immediate' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' :
+                            move.priority === 'short-term' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                            'bg-muted text-muted-foreground'
+                          }`}>
+                            {move.priority}
+                          </span>
+                        </div>
+                        <p className="font-semibold text-sm mb-1">{move.move}</p>
+                        <p className="text-xs text-muted-foreground">{move.impact}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {recommendations && recommendations.segmentStrategy && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Segment-Level Strategy</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {recommendations.segmentStrategy.map((strat, i) => (
+                      <div key={i} className="flex gap-4 p-3 rounded-lg border">
+                        <div className="font-semibold text-sm min-w-[180px]">{strat.segment}</div>
+                        <div className="text-sm text-muted-foreground">{strat.recommendation}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
