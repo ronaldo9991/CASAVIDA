@@ -42,11 +42,11 @@ const generateTrendData = () => {
 const dataTrend = generateTrendData();
 
 const dataSegments = [
-  { name: "Luxury Minimalists", value: 450, color: "var(--chart-1)" },
-  { name: "Young Professionals", value: 380, color: "var(--chart-2)" },
-  { name: "Decor Enthusiasts", value: 290, color: "var(--chart-3)" },
-  { name: "Bargain Hunters", value: 150, color: "var(--chart-4)" },
-  { name: "Corporate Accounts", value: 90, color: "var(--chart-5)" },
+  { name: "Luxury Minimalists", value: 450, color: "#8b5cf6" }, // Violet
+  { name: "Young Professionals", value: 380, color: "#10b981" }, // Emerald
+  { name: "Decor Enthusiasts", value: 290, color: "#f59e0b" }, // Amber
+  { name: "Bargain Hunters", value: 150, color: "#3b82f6" }, // Blue
+  { name: "Corporate Accounts", value: 90, color: "#ec4899" }, // Pink
 ];
 
 const dataCampaigns = [

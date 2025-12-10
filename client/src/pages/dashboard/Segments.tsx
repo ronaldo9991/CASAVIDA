@@ -15,10 +15,10 @@ type ClusterData = { x: number; y: number; z: number };
 
 // --- Synthetic Data Generators ---
 const generateSyntheticSegments = (): SegmentData[] => [
-  { name: "Luxury Minimalists", value: Math.floor(Math.random() * 300) + 200, color: "var(--chart-1)" },
-  { name: "Young Professionals", value: Math.floor(Math.random() * 300) + 150, color: "var(--chart-2)" },
-  { name: "Decor Enthusiasts", value: Math.floor(Math.random() * 200) + 100, color: "var(--chart-3)" },
-  { name: "Bargain Hunters", value: Math.floor(Math.random() * 150) + 50, color: "var(--chart-4)" },
+  { name: "Luxury Minimalists", value: Math.floor(Math.random() * 300) + 200, color: "#8b5cf6" },
+  { name: "Young Professionals", value: Math.floor(Math.random() * 300) + 150, color: "#10b981" },
+  { name: "Decor Enthusiasts", value: Math.floor(Math.random() * 200) + 100, color: "#f59e0b" },
+  { name: "Bargain Hunters", value: Math.floor(Math.random() * 150) + 50, color: "#3b82f6" },
 ];
 
 const generateSyntheticCluster = (): ClusterData[] => {
