@@ -1,26 +1,22 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// OpenAI client singleton with optimized configuration
-let openai: OpenAI | null = null;
+// Gemini AI client singleton
+let gemini: GoogleGenerativeAI | null = null;
 
-function getOpenAIClient(): OpenAI | null {
-  if (!process.env.OPENAI_API_KEY) {
+function getGeminiClient(): GoogleGenerativeAI | null {
+  if (!process.env.GEMINI_API_KEY) {
     return null;
   }
   
-  if (!openai) {
-    openai = new OpenAI({ 
-      apiKey: process.env.OPENAI_API_KEY,
-      maxRetries: 3,
-      timeout: 30000,
-    });
+  if (!gemini) {
+    gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   }
   
-  return openai;
+  return gemini;
 }
 
 export function isOpenAIConfigured(): boolean {
-  return !!process.env.OPENAI_API_KEY;
+  return !!process.env.GEMINI_API_KEY;
 }
 
 export async function generateMarketingCopy(params: {
@@ -30,7 +26,7 @@ export async function generateMarketingCopy(params: {
   tone?: string;
   keyBenefit?: string;
 }): Promise<string[]> {
-  const client = getOpenAIClient();
+  const client = getGeminiClient();
   const { productName, targetSegment, platform, tone, keyBenefit } = params;
   
   if (!client) {
@@ -38,9 +34,18 @@ export async function generateMarketingCopy(params: {
   }
 
   try {
-    const systemPrompt = `You are an expert luxury furniture and home decor marketing copywriter for CasaVida, a premium brand that blends Indian craftsmanship with Dubai elegance. Your writing is sophisticated, emotionally resonant, and conversion-focused.`;
+    const model = client.getGenerativeModel({ 
+      model: "gemini-2.0-flash-exp",
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 512,
+        responseMimeType: "application/json",
+      },
+    });
 
-    const userPrompt = `Create 2 compelling marketing copy variations for CasaVida's ${productName}.
+    const prompt = `You are an expert luxury furniture and home decor marketing copywriter for CasaVida, a premium brand that blends Indian craftsmanship with Dubai elegance. Your writing is sophisticated, emotionally resonant, and conversion-focused.
+
+Create 2 compelling marketing copy variations for CasaVida's ${productName}.
 
 CONTEXT:
 - Target Audience: ${targetSegment || "Luxury consumers seeking premium home furnishings"}
@@ -66,33 +71,24 @@ Respond ONLY with valid JSON in this exact format:
   ]
 }`;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o", // Using GPT-4o for better reliability and results
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8, // Higher creativity for marketing copy
-      max_tokens: 512,
-    } as any);
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("Empty response from OpenAI");
-    }
-
-    const result = JSON.parse(content);
-    const variations = result.variations?.map((v: { copy: string }) => v.copy.trim()) || [];
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
     
-    if (variations.length >= 2) {
-      return variations;
+    // Parse JSON response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      const variations = parsed.variations?.map((v: { copy: string }) => v.copy.trim()) || [];
+      if (variations.length >= 2) {
+        return variations;
+      }
     }
     
     // Fallback if parsing fails
     return generateMockCopy(productName, targetSegment, tone);
   } catch (error) {
-    console.error("OpenAI text generation error:", error);
+    console.error("Gemini text generation error:", error);
     return generateMockCopy(productName, targetSegment, tone);
   }
 }
@@ -146,11 +142,11 @@ export async function generateProductImage(params: {
   visualStyle?: string;
   additionalContext?: string;
 }): Promise<string> {
-  const client = getOpenAIClient();
   const { productName, visualStyle, additionalContext } = params;
   
-  if (!client) {
-    throw new Error("OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.");
+  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Hugging Face API key not configured. Please set HUGGINGFACE_API_KEY environment variable.");
   }
 
   // Enhanced style mapping with more detail
@@ -162,41 +158,66 @@ export async function generateProductImage(params: {
   
   const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
   
-  // Enhanced prompt for DALL-E 3
-  const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. 
-
-STYLE: ${styleDescription}
-
-QUALITY REQUIREMENTS:
-- High-end advertising campaign quality
-- Studio lighting setup with professional photography
-- Premium materials clearly visible (wood grain, fabric texture, metal finishes)
-- 4K resolution aesthetic, sharp focus, professional composition
-- Clean background that complements the product
-- Product should be the clear focal point
-
-${additionalContext ? `ADDITIONAL CONTEXT: ${additionalContext}` : ''}
-
-The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
+  // Enhanced prompt for Stable Diffusion
+  const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting setup with professional photography, premium materials clearly visible (wood grain, fabric texture, metal finishes), 4K resolution aesthetic, sharp focus, professional composition, clean background that complements the product, product should be the clear focal point. ${additionalContext || ''} The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
 
   try {
-    const response = await client.images.generate({
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard", // Change to "hd" for higher quality (costs more: $0.080 vs $0.040)
-      response_format: "url",
-    } as any); // DALL-E 3 is the default model
+    // Using Hugging Face Stable Diffusion XL model
+    // Note: First request might take longer as model loads (cold start)
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            num_inference_steps: 50,
+            guidance_scale: 7.5,
+            width: 1024,
+            height: 1024,
+          },
+        }),
+      }
+    );
 
-    const imageUrl = response.data?.[0]?.url;
-    if (!imageUrl) {
-      throw new Error("No image URL returned from DALL-E 3 API");
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Check if model is loading (503 status)
+      if (response.status === 503) {
+        const errorData = JSON.parse(errorText || '{}');
+        if (errorData.estimated_time) {
+          throw new Error(`Model is loading. Please wait ${Math.ceil(errorData.estimated_time)} seconds and try again.`);
+        }
+      }
+      throw new Error(`Hugging Face API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    return imageUrl;
+    // Check content type to determine if it's an image or JSON error
+    const contentType = response.headers.get('content-type') || '';
+    
+    if (contentType.startsWith('image/')) {
+      // Hugging Face returns image as blob
+      const imageBlob = await response.blob();
+      
+      // Convert blob to base64 data URL for frontend use
+      const arrayBuffer = await imageBlob.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString('base64');
+      const mimeType = imageBlob.type || 'image/png';
+      
+      // Return as data URL
+      return `data:${mimeType};base64,${base64}`;
+    } else {
+      // Might be a JSON error response
+      const errorText = await response.text();
+      throw new Error(`Unexpected response from Hugging Face: ${errorText}`);
+    }
   } catch (error: any) {
-    console.error("DALL-E 3 image generation error:", error);
-    // NO MOCK FALLBACK - Always throw error if API fails
+    console.error("Hugging Face Stable Diffusion image generation error:", error);
     throw new Error(`Failed to generate image: ${error.message || "Unknown error"}`);
   }
 }
@@ -258,14 +279,25 @@ export async function generateVoiceAudio(params: {
 // Removed generateMockAudio - no mock audio, always use Eleven Labs API
 
 export async function generateVoiceScript(productName: string): Promise<string> {
-  const client = getOpenAIClient();
+  const client = getGeminiClient();
   
   if (!client) {
     return generateMockVoiceScript(productName);
   }
 
   try {
-    const prompt = `Write a 30-second voice-over script for a CasaVida luxury furniture commercial featuring: ${productName}
+    const model = client.getGenerativeModel({ 
+      model: "gemini-2.0-flash-exp",
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 300,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const prompt = `You are a professional voice-over script writer specializing in luxury brand commercials. Your scripts are sophisticated, evocative, and designed to create emotional connections with affluent consumers.
+
+Write a 30-second voice-over script for a CasaVida luxury furniture commercial featuring: ${productName}
 
 REQUIREMENTS:
 - Start with ambient scene-setting (2-3 seconds of descriptive, sensory language)
@@ -282,21 +314,19 @@ Respond ONLY with valid JSON:
   "script": "The complete voice-over script text (no stage directions, just the spoken words)"
 }`;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You are a professional voice-over script writer specializing in luxury brand commercials. Your scripts are sophisticated, evocative, and designed to create emotional connections with affluent consumers." },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      max_tokens: 300,
-    } as any);
-
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    return result.script || generateMockVoiceScript(productName);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return parsed.script?.trim() || generateMockVoiceScript(productName);
+    }
+    
+    return generateMockVoiceScript(productName);
   } catch (error) {
-    console.error("OpenAI voice script generation error, falling back to mock:", error);
+    console.error("Gemini voice script generation error:", error);
     return generateMockVoiceScript(productName);
   }
 }
@@ -329,14 +359,25 @@ export interface DashboardRecommendations {
 }
 
 export async function generateDashboardRecommendations(data: DashboardData): Promise<DashboardRecommendations> {
-  const client = getOpenAIClient();
+  const client = getGeminiClient();
   
   if (!client) {
     return generateMockRecommendations(data);
   }
 
   try {
-    const prompt = `Analyze CasaVida, a home & living retailer experiencing a strategic crisis.
+    const model = client.getGenerativeModel({ 
+      model: "gemini-2.0-flash-exp",
+      generationConfig: {
+        temperature: 0.3, // Lower temperature for more analytical, consistent output
+        maxOutputTokens: 1500,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const prompt = `You are a senior marketing strategy consultant with 20+ years of experience analyzing retail businesses in crisis. You specialize in identifying strategic misalignments and providing actionable, data-driven recommendations. Your analysis is always specific, measurable, and prioritized.
+
+Analyze CasaVida, a home & living retailer experiencing a strategic crisis.
 
 CURRENT SITUATION:
 The company is making the classic mistake of chasing a premium "Home Enhancer" segment while neglecting their core "Functional Homemaker" customers, similar to the Bunnings/Homebase failure.
@@ -378,21 +419,19 @@ Provide strategic recommendations in JSON format with:
 
 Be specific, actionable, and data-driven. Prioritize based on impact and urgency.`;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You are a senior marketing strategy consultant with 20+ years of experience analyzing retail businesses in crisis. You specialize in identifying strategic misalignments and providing actionable, data-driven recommendations. Your analysis is always specific, measurable, and prioritized." },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.3, // Lower temperature for more analytical, consistent output
-      max_tokens: 1500,
-    } as any);
-
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    return result as DashboardRecommendations;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return parsed as DashboardRecommendations;
+    }
+    
+    return generateMockRecommendations(data);
   } catch (error) {
-    console.error("OpenAI recommendations error, falling back to mock:", error);
+    console.error("Gemini recommendations error:", error);
     return generateMockRecommendations(data);
   }
 }

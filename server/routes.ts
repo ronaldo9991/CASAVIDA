@@ -122,7 +122,8 @@ export async function registerRoutes(
   app.get("/api/status/openai", (_req: Request, res: Response) => {
     res.json({ 
       configured: isOpenAIConfigured(),
-      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      hasGemini: !!process.env.GEMINI_API_KEY,
+      hasHuggingFace: !!process.env.HUGGINGFACE_API_KEY,
       hasElevenLabs: !!process.env.ELEVEN_LABS_API_KEY,
     });
   });
