@@ -73,14 +73,47 @@ Respond in JSON format with the following structure:
 }
 
 function generateMockCopy(productName: string, targetSegment?: string, tone?: string): string[] {
-  const segment = targetSegment || "luxury";
-  const toneStyle = tone || "premium";
+  const segment = targetSegment?.toLowerCase() || "luxury";
+  const toneStyle = tone?.toLowerCase() || "premium";
   
-  const storytelling = `True luxury isn't about excess. It's about the absence of noise. Meet the ${productName} — where timeless design meets everyday comfort. Hand-crafted from sustainable materials, it's not just furniture, it's your new sanctuary. Make space for what matters. #CasaVida #MinimalLiving`;
+  // Varied copy templates based on product and segment
+  const templates = [
+    {
+      storytelling: `True luxury isn't about excess. It's about the absence of noise. Meet the ${productName} — where timeless design meets everyday comfort. Hand-crafted from sustainable materials, it's not just furniture, it's your new sanctuary. #CasaVida #MinimalLiving`,
+      benefit: `Upgrade your space with the ${productName}. Premium craftsmanship meets ergonomic design. Available now. #CasaVida #LuxuryLiving`
+    },
+    {
+      storytelling: `In a world of noise, the ${productName} whispers elegance. Every curve tells a story of master artisans. Every material speaks of sustainability. Welcome home to quiet luxury. #CasaVida #QuietLuxury`,
+      benefit: `The ${productName}: Where comfort meets sophistication. Sustainably crafted, beautifully designed, built to last generations. Discover yours today. #CasaVida #HomeSanctuary`
+    },
+    {
+      storytelling: `Some pieces furnish a room. The ${productName} transforms it. Born from our obsession with detail and devotion to craft. This is furniture that lives as beautifully as you do. #CasaVida #DesignLegacy`,
+      benefit: `Introducing the ${productName}. Exceptional materials, timeless design, uncompromising quality. For those who know the difference. #CasaVida #PremiumLiving`
+    },
+    {
+      storytelling: `The ${productName} wasn't designed. It was discovered — in the quiet spaces between form and function. Where beauty meets purpose. Where your home meets its soul. #CasaVida #SoulfulDesign`,
+      benefit: `Experience the ${productName}: Handcrafted excellence meets modern living. Premium quality, sustainable materials, lifetime craftsmanship. #CasaVida #CraftedForLife`
+    }
+  ];
   
-  const benefitFocused = `Upgrade your space with the ${productName}. Premium craftsmanship meets ergonomic design. Perfect for ${segment === "young" ? "modern living" : "discerning tastes"}. Available now in our showroom. #CasaVida #LuxuryLiving`;
+  // Select template based on product name hash for variety
+  const hash = productName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const templateIndex = hash % templates.length;
+  const template = templates[templateIndex];
   
-  return [storytelling, benefitFocused];
+  // Customize based on segment
+  let storytelling = template.storytelling;
+  let benefit = template.benefit;
+  
+  if (segment.includes("functional") || segment.includes("homemaker")) {
+    storytelling = storytelling.replace("luxury", "value").replace("quiet luxury", "smart living");
+    benefit = benefit + " Perfect for everyday families.";
+  } else if (segment.includes("enhancer") || segment.includes("premium")) {
+    storytelling = storytelling.replace("sustainable", "rare and sustainable");
+    benefit = benefit + " Exclusively for design connoisseurs.";
+  }
+  
+  return [storytelling, benefit];
 }
 
 export async function generateProductImage(params: {
@@ -92,7 +125,7 @@ export async function generateProductImage(params: {
   const { productName, visualStyle, additionalContext } = params;
   
   if (!client) {
-    return getMockImageUrl(visualStyle);
+    return getMockImageUrl(visualStyle, productName);
   }
 
   try {
@@ -114,20 +147,36 @@ export async function generateProductImage(params: {
       quality: "standard",
     });
 
-    return response.data?.[0]?.url || getMockImageUrl(visualStyle);
+    return response.data?.[0]?.url || getMockImageUrl(visualStyle, productName);
   } catch (error) {
     console.error("OpenAI image generation error, falling back to mock:", error);
-    return getMockImageUrl(visualStyle);
+    return getMockImageUrl(visualStyle, productName);
   }
 }
 
-function getMockImageUrl(visualStyle?: string): string {
-  const styleMap: Record<string, string> = {
-    "scandi": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1024&h=1024&fit=crop",
-    "dark": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1024&h=1024&fit=crop",
-    "natural": "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1024&h=1024&fit=crop",
-  };
-  return styleMap[visualStyle || "scandi"] || styleMap["scandi"];
+function getMockImageUrl(visualStyle?: string, productName?: string): string {
+  // Collection of varied furniture images from Unsplash
+  const furnitureImages = [
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1024&h=1024&fit=crop", // Sofa
+    "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1024&h=1024&fit=crop", // Dark room
+    "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1024&h=1024&fit=crop", // Chair
+    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1024&h=1024&fit=crop", // Modern living
+    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1024&h=1024&fit=crop", // Armchair
+    "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1024&h=1024&fit=crop", // Wooden table
+    "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=1024&h=1024&fit=crop", // Bedroom
+    "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=1024&h=1024&fit=crop", // Dining
+    "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1024&h=1024&fit=crop", // Living room
+    "https://images.unsplash.com/photo-1618220179428-22790b461013?w=1024&h=1024&fit=crop", // Modern interior
+    "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=1024&h=1024&fit=crop", // Luxury lounge
+    "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=1024&h=1024&fit=crop", // Cozy corner
+  ];
+  
+  // Generate a consistent but unique index based on product name and timestamp
+  const seed = productName ? productName.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : Date.now();
+  const randomOffset = Math.floor(Date.now() / 1000) % furnitureImages.length;
+  const index = (seed + randomOffset) % furnitureImages.length;
+  
+  return furnitureImages[index];
 }
 
 export async function generateVoiceAudio(params: {

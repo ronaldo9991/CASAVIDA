@@ -31,6 +31,7 @@ export default function CreativeStudio() {
   const [voiceModel, setVoiceModel] = useState("alloy");
   const [voiceSpeed, setVoiceSpeed] = useState("1.0");
   const [voiceScriptInput, setVoiceScriptInput] = useState("");
+  const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleGenerateText = async () => {
@@ -136,7 +137,7 @@ export default function CreativeStudio() {
     }
   };
 
-  const handleDownloadAudio = async () => {
+  const handleGenerateAudioPreview = async () => {
     const scriptToUse = voiceScriptInput || voiceScript;
     if (!scriptToUse) {
       toast({
@@ -166,17 +167,18 @@ export default function CreativeStudio() {
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
+      setGeneratedAudioUrl(url);
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `casavida_voice_${Date.now()}.mp3`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Auto-play the generated audio
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
       
       toast({
-        title: "Audio Downloaded",
-        description: "Your AI voice generation has been downloaded.",
+        title: "Audio Generated",
+        description: "Your AI voice is ready. Use the player to preview, then download.",
       });
     } catch (error: any) {
       toast({
@@ -186,6 +188,40 @@ export default function CreativeStudio() {
       });
     } finally {
       setIsGeneratingVoice(false);
+    }
+  };
+
+  const handleDownloadAudio = () => {
+    if (!generatedAudioUrl) {
+      toast({
+        title: "No Audio",
+        description: "Please generate audio first before downloading.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const link = document.createElement('a');
+    link.href = generatedAudioUrl;
+    link.download = `casavida_voice_${Date.now()}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Audio Downloaded",
+      description: "Your AI voice generation has been downloaded.",
+    });
+  };
+
+  const togglePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
   };
 
@@ -505,30 +541,66 @@ export default function CreativeStudio() {
                     </Button>
                     <Button 
                       className="flex-1 gap-2" 
-                      onClick={handleDownloadAudio}
+                      onClick={handleGenerateAudioPreview}
                       disabled={isGeneratingVoice || !voiceScriptInput}
                       data-testid="button-generate-audio"
                     >
-                      {isGeneratingVoice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4"/>}
-                      Download MP3
+                      {isGeneratingVoice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4"/>}
+                      Generate & Play
                     </Button>
                   </div>
                 </div>
 
                 <div className="bg-muted/30 rounded-lg p-8 flex flex-col items-center justify-center border border-dashed border-border">
                   <div className="w-full max-w-sm space-y-6 text-center">
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Music className="w-10 h-10 text-primary" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-medium">AI Voice Generation</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {voiceScriptInput ? "Ready to generate audio" : "Enter a script to get started"}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Uses OpenAI TTS-1-HD for high-quality voice synthesis
-                    </p>
+                    {generatedAudioUrl ? (
+                      <>
+                        <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="w-20 h-20 rounded-full hover:bg-green-500/20"
+                            onClick={togglePlayPause}
+                          >
+                            {isPlaying ? <Pause className="w-10 h-10 text-green-600" /> : <Play className="w-10 h-10 text-green-600" />}
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="font-medium text-green-600">Audio Ready!</h3>
+                          <p className="text-xs text-muted-foreground">
+                            Click play to preview, then download when satisfied
+                          </p>
+                        </div>
+                        <audio 
+                          ref={audioRef} 
+                          onEnded={() => setIsPlaying(false)}
+                          className="hidden"
+                        />
+                        <Button 
+                          className="gap-2" 
+                          onClick={handleDownloadAudio}
+                          data-testid="button-download-audio"
+                        >
+                          <Download className="w-4 h-4"/>
+                          Download MP3
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                          <Music className="w-10 h-10 text-primary" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="font-medium">AI Voice Generation</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {voiceScriptInput ? "Click 'Generate & Play' to create audio" : "Enter a script to get started"}
+                          </p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Uses OpenAI TTS-1-HD for high-quality voice synthesis
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
