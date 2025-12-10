@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// OpenAI client singleton with optimized configuration
 let openai: OpenAI | null = null;
 
 function getOpenAIClient(): OpenAI | null {
@@ -9,7 +9,11 @@ function getOpenAIClient(): OpenAI | null {
   }
   
   if (!openai) {
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY,
+      maxRetries: 3,
+      timeout: 30000,
+    });
   }
   
   return openai;
@@ -34,22 +38,27 @@ export async function generateMarketingCopy(params: {
   }
 
   try {
-    const prompt = `You are an expert luxury furniture and home decor marketing copywriter for CasaVida, a premium brand.
+    const systemPrompt = `You are an expert luxury furniture and home decor marketing copywriter for CasaVida, a premium brand that blends Indian craftsmanship with Dubai elegance. Your writing is sophisticated, emotionally resonant, and conversion-focused.`;
 
-Generate 2 compelling marketing copy variations for the following product:
-- Product: ${productName}
-- Target Segment: ${targetSegment || "Luxury consumers"}
+    const userPrompt = `Create 2 compelling marketing copy variations for CasaVida's ${productName}.
+
+CONTEXT:
+- Target Audience: ${targetSegment || "Luxury consumers seeking premium home furnishings"}
 - Platform: ${platform || "Instagram"}
 - Tone: ${tone || "Premium & Elegant"}
-- Key Benefit: ${keyBenefit || "Exceptional craftsmanship"}
+- Key Benefit: ${keyBenefit || "Exceptional craftsmanship and timeless design"}
 
-Requirements:
-1. Option A should use storytelling approach with emotional appeal
-2. Option B should be benefit-focused and direct
-3. Include relevant hashtags for social media
-4. Keep each variation under 280 characters for social media compatibility
+REQUIREMENTS:
+1. Variation A (Storytelling): Use narrative approach with emotional appeal. Tell a story about transformation, comfort, or lifestyle enhancement. Include sensory details.
+2. Variation B (Benefit-Focused): Lead with clear value proposition. Highlight specific benefits, quality, and craftsmanship. Be direct and persuasive.
 
-Respond in JSON format with the following structure:
+TECHNICAL:
+- Each variation must be under 280 characters (including spaces)
+- Include 2-3 relevant hashtags (e.g., #CasaVida, #LuxuryLiving, #HomeDesign)
+- Avoid generic phrases - be specific to CasaVida's brand identity
+- Use active voice and compelling verbs
+
+Respond ONLY with valid JSON in this exact format:
 {
   "variations": [
     { "label": "Option A: Storytelling", "copy": "..." },
@@ -58,16 +67,32 @@ Respond in JSON format with the following structure:
 }`;
 
     const response = await client.chat.completions.create({
-      model: "gpt-5",
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o", // Using GPT-4o for better reliability and results
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 1024,
-    });
+      temperature: 0.8, // Higher creativity for marketing copy
+      max_tokens: 512,
+    } as any);
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    return result.variations?.map((v: { copy: string }) => v.copy) || [];
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("Empty response from OpenAI");
+    }
+
+    const result = JSON.parse(content);
+    const variations = result.variations?.map((v: { copy: string }) => v.copy.trim()) || [];
+    
+    if (variations.length >= 2) {
+      return variations;
+    }
+    
+    // Fallback if parsing fails
+    return generateMockCopy(productName, targetSegment, tone);
   } catch (error) {
-    console.error("OpenAI text generation error, falling back to mock:", error);
+    console.error("OpenAI text generation error:", error);
     return generateMockCopy(productName, targetSegment, tone);
   }
 }
@@ -125,119 +150,112 @@ export async function generateProductImage(params: {
   const { productName, visualStyle, additionalContext } = params;
   
   if (!client) {
-    return getMockImageUrl(visualStyle, productName);
+    throw new Error("OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.");
   }
 
-  try {
-    const styleMap: Record<string, string> = {
-      "scandi": "Scandinavian minimal aesthetic, clean lines, neutral colors, natural light",
-      "dark": "dark luxury photography, moody lighting, rich textures, sophisticated ambiance",
-      "natural": "bright natural lighting, organic textures, warm earthy tones",
-    };
-    
-    const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
-    
-    const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. ${styleDescription}. High-end advertising campaign quality, studio lighting, premium materials visible, 4K resolution aesthetic. ${additionalContext || ""}`;
+  // Enhanced style mapping with more detail
+  const styleMap: Record<string, string> = {
+    "scandi": "Scandinavian minimal aesthetic with clean lines, neutral colors (beige, white, gray), natural light streaming through large windows, minimalist composition, modern furniture styling",
+    "dark": "Dark luxury photography with moody lighting, rich textures (velvet, leather, wood), sophisticated ambiance, dramatic shadows, premium materials, editorial style",
+    "natural": "Bright natural lighting, organic textures (wood grain, natural fibers, stone), warm earthy tones (browns, tans, greens), cozy atmosphere, sustainable materials visible",
+  };
+  
+  const styleDescription = styleMap[visualStyle || "scandi"] || styleMap["scandi"];
+  
+  // Enhanced prompt for DALL-E 3
+  const prompt = `Professional product photography of ${productName} for CasaVida luxury furniture brand. 
 
+STYLE: ${styleDescription}
+
+QUALITY REQUIREMENTS:
+- High-end advertising campaign quality
+- Studio lighting setup with professional photography
+- Premium materials clearly visible (wood grain, fabric texture, metal finishes)
+- 4K resolution aesthetic, sharp focus, professional composition
+- Clean background that complements the product
+- Product should be the clear focal point
+
+${additionalContext ? `ADDITIONAL CONTEXT: ${additionalContext}` : ''}
+
+The image should convey luxury, craftsmanship, and sophistication. Avoid text, watermarks, or logos in the image.`;
+
+  try {
     const response = await client.images.generate({
-      model: "dall-e-3",
       prompt: prompt,
       n: 1,
       size: "1024x1024",
-      quality: "standard",
-    });
+      quality: "standard", // Change to "hd" for higher quality (costs more: $0.080 vs $0.040)
+      response_format: "url",
+    } as any); // DALL-E 3 is the default model
 
-    return response.data?.[0]?.url || getMockImageUrl(visualStyle, productName);
-  } catch (error) {
-    console.error("OpenAI image generation error, falling back to mock:", error);
-    return getMockImageUrl(visualStyle, productName);
+    const imageUrl = response.data?.[0]?.url;
+    if (!imageUrl) {
+      throw new Error("No image URL returned from DALL-E 3 API");
+    }
+
+    return imageUrl;
+  } catch (error: any) {
+    console.error("DALL-E 3 image generation error:", error);
+    // NO MOCK FALLBACK - Always throw error if API fails
+    throw new Error(`Failed to generate image: ${error.message || "Unknown error"}`);
   }
 }
 
-function getMockImageUrl(visualStyle?: string, productName?: string): string {
-  // Collection of varied furniture images from Unsplash
-  const furnitureImages = [
-    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1024&h=1024&fit=crop", // Sofa
-    "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1024&h=1024&fit=crop", // Dark room
-    "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1024&h=1024&fit=crop", // Chair
-    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1024&h=1024&fit=crop", // Modern living
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1024&h=1024&fit=crop", // Armchair
-    "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1024&h=1024&fit=crop", // Wooden table
-    "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=1024&h=1024&fit=crop", // Bedroom
-    "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=1024&h=1024&fit=crop", // Dining
-    "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1024&h=1024&fit=crop", // Living room
-    "https://images.unsplash.com/photo-1618220179428-22790b461013?w=1024&h=1024&fit=crop", // Modern interior
-    "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=1024&h=1024&fit=crop", // Luxury lounge
-    "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=1024&h=1024&fit=crop", // Cozy corner
-  ];
-  
-  // Generate a consistent but unique index based on product name and timestamp
-  const seed = productName ? productName.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : Date.now();
-  const randomOffset = Math.floor(Date.now() / 1000) % furnitureImages.length;
-  const index = (seed + randomOffset) % furnitureImages.length;
-  
-  return furnitureImages[index];
-}
+// Removed getMockImageUrl - no mock images, always use API
 
+// Voice generation using Eleven Labs (replacing OpenAI TTS)
 export async function generateVoiceAudio(params: {
   script: string;
   voice?: string;
   speed?: number;
 }): Promise<Buffer> {
-  const client = getOpenAIClient();
-  const { script, voice = "alloy", speed = 1.0 } = params;
+  const apiKey = process.env.ELEVEN_LABS_API_KEY;
+  const { script, voice = "21m00Tcm4TlvDq8ikWAM", speed = 1.0 } = params;
   
-  if (!client) {
-    return generateMockAudio(script);
+  if (!apiKey) {
+    throw new Error("Eleven Labs API key not configured. Please set ELEVEN_LABS_API_KEY environment variable.");
   }
 
   try {
-    const response = await client.audio.speech.create({
-      model: "tts-1-hd",
-      voice: voice as "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer",
-      input: script,
-      speed: speed,
-    });
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
+      {
+        method: "POST",
+        headers: {
+          "Accept": "audio/mpeg",
+          "Content-Type": "application/json",
+          "xi-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          text: script,
+          model_id: "eleven_multilingual_v2", // Best quality multilingual model
+          voice_settings: {
+            stability: 0.6, // Higher stability for professional voice
+            similarity_boost: 0.8, // Higher similarity for consistent voice
+            style: 0.3, // Moderate style for natural delivery
+            use_speaker_boost: true, // Enhanced clarity
+          },
+          generation_config: {
+            speed: speed,
+          },
+        }),
+      }
+    );
 
-    const buffer = Buffer.from(await response.arrayBuffer());
-    return buffer;
-  } catch (error) {
-    console.error("OpenAI voice generation error, falling back to mock:", error);
-    return generateMockAudio(script);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Eleven Labs API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error: any) {
+    console.error("Eleven Labs voice generation error:", error);
+    throw new Error(`Failed to generate voice audio: ${error.message || "Unknown error"}`);
   }
 }
 
-function generateMockAudio(script: string): Buffer {
-  const sampleRate = 22050;
-  const duration = Math.min(script.length / 10, 5);
-  const numSamples = Math.floor(sampleRate * duration);
-  
-  const header = Buffer.alloc(44);
-  header.write('RIFF', 0);
-  header.writeUInt32LE(36 + numSamples * 2, 4);
-  header.write('WAVE', 8);
-  header.write('fmt ', 12);
-  header.writeUInt32LE(16, 16);
-  header.writeUInt16LE(1, 20);
-  header.writeUInt16LE(1, 22);
-  header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE(sampleRate * 2, 28);
-  header.writeUInt16LE(2, 32);
-  header.writeUInt16LE(16, 34);
-  header.write('data', 36);
-  header.writeUInt32LE(numSamples * 2, 40);
-  
-  const samples = Buffer.alloc(numSamples * 2);
-  for (let i = 0; i < numSamples; i++) {
-    const t = i / sampleRate;
-    const freq = 220 + Math.sin(t * 2) * 50;
-    const value = Math.sin(2 * Math.PI * freq * t) * 8000;
-    const clampedValue = Math.max(-32768, Math.min(32767, Math.round(value)));
-    samples.writeInt16LE(clampedValue, i * 2);
-  }
-  
-  return Buffer.concat([header, samples]);
-}
+// Removed generateMockAudio - no mock audio, always use Eleven Labs API
 
 export async function generateVoiceScript(productName: string): Promise<string> {
   const client = getOpenAIClient();
@@ -247,27 +265,33 @@ export async function generateVoiceScript(productName: string): Promise<string> 
   }
 
   try {
-    const prompt = `You are a professional voice-over script writer for luxury brand commercials.
+    const prompt = `Write a 30-second voice-over script for a CasaVida luxury furniture commercial featuring: ${productName}
 
-Write a 30-second voice-over script for a CasaVida commercial featuring: ${productName}
+REQUIREMENTS:
+- Start with ambient scene-setting (2-3 seconds of descriptive, sensory language)
+- Be calm, sophisticated, and evocative throughout
+- Appeal to luxury consumers seeking quality, craftsmanship, and timeless design
+- Include specific details about the product that convey premium quality
+- End with a subtle, elegant call to action
+- Total script should be approximately 75-90 words (30 seconds at normal speaking pace)
+- Use present tense and active voice
+- Avoid clichés - be original and specific to CasaVida's brand
 
-The script should:
-- Start with ambient scene-setting
-- Be calm, sophisticated, and evocative
-- Appeal to luxury consumers seeking quality home furnishings
-- End with a subtle call to action
-
-Respond in JSON format:
+Respond ONLY with valid JSON:
 {
-  "script": "The complete voice-over script text"
+  "script": "The complete voice-over script text (no stage directions, just the spoken words)"
 }`;
 
     const response = await client.chat.completions.create({
-      model: "gpt-5",
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a professional voice-over script writer specializing in luxury brand commercials. Your scripts are sophisticated, evocative, and designed to create emotional connections with affluent consumers." },
+        { role: "user", content: prompt }
+      ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 512,
-    });
+      temperature: 0.7,
+      max_tokens: 300,
+    } as any);
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return result.script || generateMockVoiceScript(productName);
@@ -312,35 +336,58 @@ export async function generateDashboardRecommendations(data: DashboardData): Pro
   }
 
   try {
-    const prompt = `You are a senior marketing strategy consultant analyzing CasaVida, a home & living retailer in crisis.
+    const prompt = `Analyze CasaVida, a home & living retailer experiencing a strategic crisis.
 
-Current Data:
-- Segments: ${JSON.stringify(data.segments.map(s => ({ name: s.name, size: s.size, churnRisk: s.churnRisk, healthScore: s.healthScore, isCore: s.isCore })))}
-- Competitors: ${JSON.stringify(data.competitors.map(c => ({ name: c.name, marketShare: c.marketShare, threat: c.threat })))}
-- Initiatives: ${JSON.stringify(data.initiatives.map(i => ({ name: i.name, priority: i.priority, impact: i.impact, effort: i.effort })))}
-
+CURRENT SITUATION:
 The company is making the classic mistake of chasing a premium "Home Enhancer" segment while neglecting their core "Functional Homemaker" customers, similar to the Bunnings/Homebase failure.
 
-Provide strategic recommendations in JSON format:
-{
-  "executiveSummary": "2-3 sentence executive summary of the situation and key recommendation",
-  "topRisks": [
-    { "risk": "description", "severity": "critical|high|medium", "action": "immediate action" }
-  ],
-  "strategicMoves": [
-    { "move": "strategic action", "priority": "immediate|short-term|long-term", "impact": "expected outcome" }
-  ],
-  "segmentStrategy": [
-    { "segment": "segment name", "recommendation": "specific recommendation" }
-  ]
-}`;
+DATA:
+- Customer Segments: ${JSON.stringify(data.segments.map(s => ({ 
+  name: s.name, 
+  size: s.size, 
+  churnRisk: s.churnRisk, 
+  healthScore: s.healthScore, 
+  isCore: s.isCore,
+  avgClv: s.avgClv,
+  growthRate: s.growthRate
+})))}
+
+- Competitors: ${JSON.stringify(data.competitors.map(c => ({ 
+  name: c.name, 
+  marketShare: c.marketShare, 
+  threat: c.threat,
+  priceIndex: c.priceIndex,
+  sentiment: c.sentiment
+})))}
+
+- Business Initiatives: ${JSON.stringify(data.initiatives.map(i => ({ 
+  name: i.name, 
+  priority: i.priority, 
+  impact: i.impact, 
+  effort: i.effort,
+  status: i.status,
+  category: i.category
+})))}
+
+REQUIREMENTS:
+Provide strategic recommendations in JSON format with:
+1. executiveSummary: 2-3 sentence summary of the crisis and key recommendation
+2. topRisks: Array of 3-5 risks with severity (critical/high/medium) and immediate action
+3. strategicMoves: Array of 4-6 strategic actions with priority (immediate/short-term/long-term) and expected impact
+4. segmentStrategy: Array with specific recommendation for each segment
+
+Be specific, actionable, and data-driven. Prioritize based on impact and urgency.`;
 
     const response = await client.chat.completions.create({
-      model: "gpt-5",
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a senior marketing strategy consultant with 20+ years of experience analyzing retail businesses in crisis. You specialize in identifying strategic misalignments and providing actionable, data-driven recommendations. Your analysis is always specific, measurable, and prioritized." },
+        { role: "user", content: prompt }
+      ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 1024,
-    });
+      temperature: 0.3, // Lower temperature for more analytical, consistent output
+      max_tokens: 1500,
+    } as any);
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return result as DashboardRecommendations;

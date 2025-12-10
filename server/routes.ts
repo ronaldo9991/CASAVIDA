@@ -120,7 +120,11 @@ export async function registerRoutes(
 
   // ============ STATUS API ============
   app.get("/api/status/openai", (_req: Request, res: Response) => {
-    res.json({ configured: isOpenAIConfigured() });
+    res.json({ 
+      configured: isOpenAIConfigured(),
+      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      hasElevenLabs: !!process.env.ELEVEN_LABS_API_KEY,
+    });
   });
 
   // ============ SEED DATA API ============
@@ -298,7 +302,9 @@ export async function registerRoutes(
         res.status(400).json({ error: error.errors });
       } else {
         console.error("Image generation error:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+          error: error.message || "Failed to generate image. Please ensure OPENAI_API_KEY is configured and has sufficient credits." 
+        });
       }
     }
   });
@@ -308,13 +314,10 @@ export async function registerRoutes(
       const parsed = generateVoiceRequestSchema.parse(req.body);
       const audioBuffer = await generateVoiceAudio(parsed);
       
-      const isMock = !isOpenAIConfigured();
-      const contentType = isMock ? "audio/wav" : "audio/mpeg";
-      const extension = isMock ? "wav" : "mp3";
-      
+      // Eleven Labs returns MP3
       res.set({
-        "Content-Type": contentType,
-        "Content-Disposition": `attachment; filename="casavida_voice_${Date.now()}.${extension}"`,
+        "Content-Type": "audio/mpeg",
+        "Content-Disposition": `attachment; filename="casavida_voice_${Date.now()}.mp3"`,
         "Content-Length": audioBuffer.length,
       });
       res.send(audioBuffer);
@@ -323,7 +326,9 @@ export async function registerRoutes(
         res.status(400).json({ error: error.errors });
       } else {
         console.error("Voice generation error:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+          error: error.message || "Failed to generate voice audio. Please ensure ELEVEN_LABS_API_KEY is configured." 
+        });
       }
     }
   });
